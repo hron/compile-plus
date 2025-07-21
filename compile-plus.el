@@ -1,0 +1,66 @@
+;;; compile-plus.el --- Run M-x `compile' based on buffer content  -*- lexical-binding: t; -*-
+;;
+;; Copyright (C) 2025  Aleksei Gusev
+;;
+;; Author: Aleksei Gusev <aleksei.gusev@gmail.com>
+;; Maintainer: Aleksei Gusev <aleksei.gusev@gmail.com>
+;; URL: https://github.com/hron/compile-plus.el
+;; Version: 0.0.1
+;; Package-Requires: ((emacs "26.1"))
+;; Keywords: compile test
+;; SPDX-License-Identifier: GPL
+;;
+;; This file is not part of GNU Emacs.
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program. If not, see <https://www.gnu.org/licenses/>.
+;;
+;;; Commentary:
+;;
+;; Run M-x `compile' based on buffer content
+;;
+;;; Code:
+
+(require 'compile)
+
+(defvar compile-plus-providers-alist '()
+  "Contains functions to provide candidates per mode.")
+
+(defcustom compile-plus-override-providers nil
+  "Overrides providers for current buffer."
+  :local t
+  :risky t)
+
+(defun compile-plus--build-future-history ()
+  "Returns a list of commands that is used as future history for `compile'."
+  '("cargo test test_under_cursor" "cargo test this_test_module"))
+
+(defun compile-plus--read-command (command)
+  "Copy of `compile-read-command', except provides future history.
+See `compile-read-command' documentation for COMMAND meaning."
+  (read-shell-command "Compile command: " command
+                      (if (equal (car compile-history) command)
+                          '(compile-history . 1)
+                        'compile-history)
+                      (compile-plus--build-future-history)))
+
+;;;###autoload
+(define-minor-mode compile-plus-mode
+  "Extends `compile' command with future history based on the context."
+  :global t :lighter nil
+  (advice-remove 'compilation-read-command #'compile-plus--read-command)
+  (when compile-plus-mode
+    (advice-add 'compilation-read-command :override #'compile-plus--read-command)))
+
+(provide 'compile-plus)
+;;; compile-plus.el ends here
