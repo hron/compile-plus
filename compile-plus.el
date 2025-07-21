@@ -43,7 +43,12 @@
 
 (defun compile-plus--build-future-history ()
   "Returns a list of commands that is used as future history for `compile'."
-  '("cargo test test_under_cursor" "cargo test this_test_module"))
+  (let ((provider-funcs (or compile-plus-override-providers
+                            (alist-get major-mode compile-plus-providers-alist)))
+        (result '()))
+    (dolist (func provider-funcs)
+      (push (funcall func) result))
+    (flatten-list result)))
 
 (defun compile-plus--read-command (command)
   "Copy of `compile-read-command', except provides future history.
