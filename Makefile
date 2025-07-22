@@ -17,6 +17,9 @@ compile:
 test:
 	$(EASK) test ert ./test/*.el
 
+test-fast:
+	emacs --batch  -L . -l test/*.el --eval '(ert-run-tests-batch-and-exit t)'
+
 checkdoc:
 	$(EASK) lint checkdoc --strict
 
