@@ -42,13 +42,18 @@
   (let ((matches (treesit-query-capture
                   'rust
                   compile-plus-rust-ts-test-query
-                  (beginning-of-buffer) (point)
+                  (point-min) (point)
                   nil t))
         (result '()))
     (dolist (captures matches)
-      (let ((test-name (treesit-node-text (alist-get 'test_name captures))))
-        (push (format "cargo test %s" test-name) result)))
+      (let ((test-name (treesit-node-text (alist-get 'test_name captures)))
+            (beg (treesit-node-start (alist-get 'start captures)))
+            (end (treesit-node-end (alist-get 'end captures))))
+        (when (and (<= beg (point)) (>= end (point)))
+          (push (format "cargo test %s" test-name) result))))
     result))
+
+;; "cargo test -p rune -- fileio" to run module tests
 
 (add-to-list 'compile-plus-providers-alist '(rust-ts-mode . (compile-plus-rust-ts-test-under-cursor)))
 
