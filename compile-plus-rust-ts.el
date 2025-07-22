@@ -18,8 +18,6 @@
 ;;
 ;;; Code:
 
-(require 'compile-plus)
-
 (defvar compile-plus-rust-ts-test-query
   (treesit-query-compile
    'rust
@@ -37,6 +35,7 @@
         name: (_)  @test_name
         body: _) @end))))
 
+;;;###autoload
 (defun compile-plus-rust-ts-test-under-cursor ()
   "Find a test under point in `rust-ts-mode'."
   (let ((matches (treesit-query-capture
@@ -45,17 +44,24 @@
                   (point-min) (point)
                   nil t))
         (result '()))
+
+    (when (< 0 (length matches))
+      (let ((mod (file-name-base buffer-file-name)))
+        (push (format "cargo test -- %s" mod) result)))
+
     (dolist (captures matches)
       (let ((test-name (treesit-node-text (alist-get 'test_name captures)))
             (beg (treesit-node-start (alist-get 'start captures)))
             (end (treesit-node-end (alist-get 'end captures))))
         (when (and (<= beg (point)) (>= end (point)))
           (push (format "cargo test %s" test-name) result))))
+
     result))
 
-;; "cargo test -p rune -- fileio" to run module tests
-
-(add-to-list 'compile-plus-providers-alist '(rust-ts-mode . (compile-plus-rust-ts-test-under-cursor)))
+;;;###autoload
+(defun compile-plus-rust-ts-all ()
+  "Return command to run all tests as string."
+  "cargo test")
 
 (provide 'compile-plus-rust-ts)
 ;;; compile-plus-rust-ts.el ends here

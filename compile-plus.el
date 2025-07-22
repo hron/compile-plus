@@ -19,8 +19,10 @@
 ;;; Code:
 
 (require 'compile)
+(require 'compile-plus-rust-ts)
 
-(defvar compile-plus-providers-alist '()
+(defvar compile-plus-providers-alist
+  '((rust-ts-mode . (compile-plus-rust-ts-all compile-plus-rust-ts-test-under-cursor)))
   "Contains functions to provide candidates per mode.")
 
 (defcustom compile-plus-override-providers nil
