@@ -22,7 +22,9 @@
 (require 'compile-plus-rust-ts)
 
 (defvar compile-plus-providers-alist
-  '((rust-ts-mode . (compile-plus-rust-ts-all compile-plus-rust-ts-test-under-cursor)))
+  '((rust-ts-mode . (compile-plus-rust-ts-all
+                     compile-plus-rust-ts-test-at-point
+                     compile-plus-rust-ts-doctest-at-point)))
   "Contains functions to provide candidates per mode.")
 
 (defcustom compile-plus-override-providers nil
