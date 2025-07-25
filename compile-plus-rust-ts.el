@@ -41,13 +41,9 @@
   (let ((matches (treesit-query-capture
                   'rust
                   compile-plus-rust-ts-test-query
-                  (point-min) (point)
+                  (point-min) (point-max)
                   nil t))
         (result '()))
-
-    (when (< 0 (length matches))
-      (let ((mod (file-name-base buffer-file-name)))
-        (push (format "cargo test -- %s" mod) result)))
 
     (dolist (captures matches)
       (let ((test-name (treesit-node-text (alist-get 'test_name captures)))
@@ -95,13 +91,9 @@
   (let ((matches (treesit-query-capture
                   'rust
                   compile-plus-rust-ts-doctest-query
-                  (point-min) (point)
+                  (point-min) (point-max)
                   nil t))
         (result '()))
-
-    (when (< 0 (length matches))
-      (let ((mod (file-name-base buffer-file-name)))
-        (push (format "cargo test -- %s" mod) result)))
 
     (dolist (captures matches)
       (let ((test-name (treesit-node-text (alist-get 'doc_test_name captures)))
@@ -112,8 +104,53 @@
 
     result))
 
+(defvar compile-plus-rust-ts-test-mod-query
+  (treesit-query-compile
+   'rust
+   '(((attribute_item
+       (attribute
+        ((identifier) @_attribute)
+        arguments: (
+                    (token_tree (identifier) @_test)
+                    (:equal "test" @_test)))
+       (:equal "cfg" @_attribute))
+      :anchor
+      (mod_item
+       name: (_))))))
+
 ;;;###autoload
-(defun compile-plus-rust-ts-all ()
+(defun compile-plus-rust-ts-test-mod ()
+  "Return command to run the tests for current mod."
+  (when (treesit-query-capture
+         'rust
+         compile-plus-rust-ts-test-mod-query
+         (point-min) (point-max)
+         nil t)
+    (format "cargo test -- %s" (file-name-base buffer-file-name))))
+
+(defvar compile-plus-rust-ts-main
+  (treesit-query-compile
+   'rust
+   '(((function_item
+       name: (_) @_func_name
+       body: _) @main_func
+       (:equal "main" @_func_name)))))
+
+;;;###autoload
+(defun compile-plus-rust-ts-main ()
+  "Return command to run main function at point."
+  (when-let* ((captures (car (treesit-query-capture
+                              'rust
+                              compile-plus-rust-ts-main
+                              (point-min) (point-max)
+                              nil t)))
+              (beg (treesit-node-start (alist-get 'main_func captures)))
+              (end (treesit-node-end (alist-get 'main_func captures))))
+    (when (and (<= beg (point)) (>= end (point)))
+      "cargo run --bin")))
+
+;;;###autoload
+(defun compile-plus-rust-ts-test-all ()
   "Return command to run all tests as string."
   "cargo test")
 

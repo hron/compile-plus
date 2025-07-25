@@ -7,47 +7,38 @@
 
 ;;; Code:
 
-(require 'compile-plus-rust-ts)
+(require 'compile-plus)
 (require 'ert)
 
 (ert-deftest rust-ts-test-at-point ()
-  (with-temp-buffer
-    (let ((buffer-file-name "/tmp/foobar_mod.rs"))
-      (insert "
-      #[test]
-      mod tests {
-        #[test]
-        fn foobar_test (){
-        }
+  (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
+    (search-forward "fn test_sub_foo")
+    (should (equal (compile-plus--build-future-history)
+                   '("cargo test test_sub_foo"
+                     "cargo test -- sub"
+                     "cargo test")))))
 
-        #[test]
-        fn another_test (){
-        }
-      }")
-      (search-backward "fn foobar_test")
-      (rust-ts-mode)
-      (compile-plus-mode +1)
-      (should (equal (compile-plus--build-future-history)
-                     '("cargo test foobar_test"
-                       "cargo test -- foobar_mod"
-                       "cargo test"))))))
-
-;; cargo test -p rune-macros --doc -- defun
 (ert-deftest rust-ts-doctest-at-point ()
-  (with-temp-buffer
-    (let ((buffer-file-name "/tmp/foobar_mod.rs"))
-      (insert "
-        /// ```
-        /// assert_eq!(4, 2 + 2)
-        /// ```
-        fn add(a: usize, b: usize) -> usize {
-          a + b
-        }
-      ")
-      (search-backward "fn add")
-      (rust-ts-mode)
-      (compile-plus-mode +1)
-      (should (equal (compile-plus--build-future-history)
-                     '("cargo test --doc -- add"
-                       "cargo test -- foobar_mod"
-                       "cargo test"))))))
+  (with-sample-file "rust-ts/src/add.rs" #'rust-ts-mode
+    (search-forward "fn add")
+    (should (equal (compile-plus--build-future-history)
+                   '("cargo test --doc -- add"
+                     "cargo test")))))
+
+(ert-deftest rust-ts-main ()
+  (with-sample-file "rust-ts/src/main.rs" #'rust-ts-mode
+    (search-forward "fn main")
+    (should (equal (compile-plus--build-future-history)
+                   '("cargo run --bin"
+                     "cargo test")))))
+
+(defmacro with-sample-file (file-path mode &rest body)
+  "Execute BODY in context of FILE-PATH from test fixtures directory.
+Use MODE as major mode."
+  (declare (indent 2))
+  `(let ((buffer (find-file-noselect (expand-file-name (concat "test/fixtures/" ,file-path)))))
+     (with-current-buffer buffer
+       (unwind-protect
+           (funcall ,mode)
+         (progn ,@body)
+         (kill-buffer buffer)))))
