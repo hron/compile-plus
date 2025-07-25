@@ -20,6 +20,9 @@
 
 (require 'compile-plus-helpers)
 
+(defcustom compile-plus-rust-ts-test-binary-args "--no-capture --include-ignored"
+  "Arguments for the test binary: cargo test -- ARGS.")
+
 (defvar compile-plus-rust-ts-test-query
   (treesit-query-compile
    'rust
@@ -47,7 +50,30 @@
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches))
               (test-name (treesit-node-text (alist-get 'test_name captures))))
-    (format "cargo test %s" test-name)))
+
+    (format
+     "cargo test -p %s -- %s %s"
+     (compile-plus-rust-ts-package-name)
+     compile-plus-rust-ts-test-binary-args
+     test-name)))
+
+(defun compile-plus-rust-ts-package-name ()
+  "Returns cargo package name for current buffer by running `cargo pkgid`.
+Returns nil if detection fails or cargo is not available."
+  (let ((pkgid (string-trim (shell-command-to-string "cargo pkgid 2>/dev/null"))))
+    (compile-plus-rust-ts-package-name-from-pkgid pkgid)))
+
+(defun compile-plus-rust-ts-package-name-from-pkgid (pkgid)
+  "Extracts package name from PKGID.
+path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#0.1.0
+path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1.0."
+  (if (string-match-p "@" pkgid)
+      (let* ((name (car (string-split pkgid "@")))
+             (name (car (last (string-split name "#")))))
+        name)
+    (let* ((name (car (string-split pkgid "#" )))
+           (name (car (last (string-split name "/")))))
+      name)))
 
 (defvar compile-plus-rust-ts-doctest-query
   (treesit-query-compile
@@ -90,7 +116,10 @@
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches))
               (test-name (treesit-node-text (alist-get 'doc_test_name captures))))
-    (format "cargo test --doc -- %s" test-name)))
+    (format "cargo test -p %s --doc -- %s %s"
+            (compile-plus-rust-ts-package-name)
+            compile-plus-rust-ts-test-binary-args
+            test-name)))
 
 (defvar compile-plus-rust-ts-test-mod-query
   (treesit-query-compile
@@ -114,7 +143,10 @@
          compile-plus-rust-ts-test-mod-query
          (point-min) (point-max)
          nil t)
-    (format "cargo test -- %s" (file-name-base buffer-file-name))))
+    (format "cargo test -p %s -- %s %s"
+            (compile-plus-rust-ts-package-name)
+            compile-plus-rust-ts-test-binary-args
+            (file-name-base buffer-file-name))))
 
 (defvar compile-plus-rust-ts-main
   (treesit-query-compile
