@@ -22,7 +22,12 @@
 (require 'compile-plus-rust-ts)
 
 (defvar compile-plus-providers-alist
-  '((rust-ts-mode . (compile-plus-rust-ts-test-all
+  '((rust-mode . (compile-plus-rust-ts-test-all
+                  compile-plus-rust-ts-main
+                  compile-plus-rust-ts-test-mod
+                  compile-plus-rust-ts-test-at-point
+                  compile-plus-rust-ts-doctest-at-point))
+    (rust-ts-mode . (compile-plus-rust-ts-test-all
                      compile-plus-rust-ts-main
                      compile-plus-rust-ts-test-mod
                      compile-plus-rust-ts-test-at-point
