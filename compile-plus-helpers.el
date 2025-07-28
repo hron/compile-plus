@@ -1,3 +1,23 @@
+;;; compile-plus-helpers.el --- Run M-x `compile' based on buffer content  -*- lexical-binding: t; -*-
+;;
+;; Copyright (C) 2025  Aleksei Gusev
+;;
+;; Author: Aleksei Gusev <aleksei.gusev@gmail.com>
+;; Maintainer: Aleksei Gusev <aleksei.gusev@gmail.com>
+;; URL: https://github.com/hron/compile-plus.el
+;; Version: 0.0.1
+;; Package-Requires: ((emacs "29.1"))
+;; Keywords: tools, processes, compile, test
+;; SPDX-License-Identifier: GPL
+;;
+;; This file is not part of GNU Emacs.
+;;
+;;; Commentary:
+;;
+;; Run M-x `compile' based on buffer content
+;;
+;;; Code:
+
 (defun compile-plus-helpers--has-point-p (match)
   "Detect if MATCH includes the point."
   (let ((beg (treesit-node-start (alist-get 'start match)))
