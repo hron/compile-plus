@@ -51,6 +51,7 @@
 (defcustom compile-plus-replace-compile-command nil
   "If set to t use the first entry of future history instead of `compile-command'.")
 
+;; This is just a test for CI
 (defun compile-plus--read-command (command)
   "Copy of `compile-read-command', except provides future history.
 Also it uses the first future history entry as default if the passed
