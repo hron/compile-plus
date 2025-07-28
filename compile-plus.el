@@ -48,14 +48,24 @@
       (push (funcall func) result))
     (flatten-list result)))
 
+(defcustom compile-plus-replace-compile-command nil
+  "If set to t use the first entry of future history instead of `compile-command'.")
+
 (defun compile-plus--read-command (command)
   "Copy of `compile-read-command', except provides future history.
-See `compile-read-command' documentation for COMMAND meaning."
-  (read-shell-command "Compile command: " command
-                      (if (equal (car compile-history) command)
-                          '(compile-history . 1)
-                        'compile-history)
-                      (compile-plus--build-future-history)))
+Also it uses the first future history entry as default if the passed
+COMMAND is nil."
+  (let* ((future-history (compile-plus--build-future-history))
+         (initial-content (if compile-plus-replace-compile-command
+                              (car future-history)
+                            command))
+         (future-history (if compile-plus-replace-compile-command
+                             (cdr future-history)
+                           future-history)))
+    (read-shell-command "Compile command: "
+                        initial-content
+                        'compile-history
+                        future-history)))
 
 ;;;###autoload
 (define-minor-mode compile-plus-mode
