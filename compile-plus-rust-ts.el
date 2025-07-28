@@ -81,11 +81,12 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
    '(((line_comment) :*
       (line_comment doc: (_) @_comment_content) @start
       (:match "```" @_comment_content)
-      :anchor
-      (line_comment) :*
-      :anchor
-      (line_comment doc: (_) @_end_comment_content) @_end_code_block
-      (:match "```" @_end_comment_content)
+      ;; This is an optimization. Without it the query is super, when
+      ;; multiple ``` blocks are present in the comments
+      ;; :anchor
+      ;; (line_comment) :* :anchor (line_comment doc: (_)
+      ;; @_end_comment_content) @_end_code_block (:match "```"
+      ;; @_end_comment_content)
       :anchor
       (line_comment) :*
       (attribute_item) :*

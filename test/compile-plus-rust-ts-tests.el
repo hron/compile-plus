@@ -48,11 +48,29 @@
            (compile-plus-rust-ts-package-name-from-pkgid "path+file:///absolute/path/rust-ts#custom-rust-ts@0.1.0")
            "custom-rust-ts")))
 
+(ert-deftest rust-ts-slow-doctest ()
+  (with-sample-file "rust-ts/src/slow-doctest.rs" #'rust-ts-mode
+    (search-forward "```")
+    (let* ((benchmark
+            (benchmark-run
+                (should (equal (compile-plus--build-future-history)
+                               '("cargo test -p rust-ts --doc -- --no-capture --include-ignored add"
+                                 "cargo test")))))
+           (elapsted-time (car benchmark)))
+      (should (> 0.2 elapsted-time)))))
+
+
+(defconst compile-plus-project-dir
+  (expand-file-name ".." (find-library-name "compile-plus"))
+  "Stores project root.")
+
 (defmacro with-sample-file (file-path mode &rest body)
   "Execute BODY in context of FILE-PATH from test fixtures directory.
 Use MODE as major mode."
   (declare (indent 2))
-  `(let ((buffer (find-file-noselect (expand-file-name (concat "test/fixtures/" ,file-path)))))
+  `(let* ((fixture-relpath (concat "test/fixtures/" ,file-path))
+          (fixture-path (expand-file-name fixture-relpath compile-plus-project-dir))
+          (buffer (find-file-noselect fixture-path)))
      (with-current-buffer buffer
        (unwind-protect
            (funcall ,mode)
