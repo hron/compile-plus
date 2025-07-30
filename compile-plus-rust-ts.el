@@ -198,6 +198,13 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
            :array-type 'list)))
   compile-plus-rust-ts--cargo-metadata)
 
+(defun compile-plus-rust-ts-features ()
+  "Return --features foo,bar needed for current buffer to run, if any."
+  (let ((features (gethash "required-features" (compile-plus-rust-ts--cargo-target))))
+    (if features
+        (concat "--features " (string-join features ",") " ")
+      "")))
+
 ;;;###autoload
 (defun compile-plus-rust-ts-run ()
   "Return command to run main function at point."
@@ -208,8 +215,9 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches)))
     (string-trim
-     (format "cargo run -p %s --%s %s"
+     (format "cargo run -p %s %s--%s %s"
              (compile-plus-rust-ts-package-name)
+             (compile-plus-rust-ts-features)
              (compile-plus-rust-ts-bin-kind)
              (compile-plus-rust-ts-bin-name)))))
 

@@ -9,3 +9,13 @@ members = [
 ]
 
 [dependencies]
+
+[features]
+default = []
+foo_feature = []
+bar_feature = []
+
+[[bin]]
+name = "feature_bin"
+path = "src/bin/feature_bin.rs"
+required-features = ["foo_feature", "bar_feature"]

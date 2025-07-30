@@ -48,6 +48,13 @@
                    '("cargo run -p rust-ts --bin another_bin"
                      "cargo test")))))
 
+(ert-deftest rust-ts-bin-target-with-feature ()
+  (with-sample-file "rust-ts/src/bin/feature_bin.rs" #'rust-ts-mode
+    (search-forward "fn main")
+    (should (equal (compile-plus--build-future-history)
+                   '("cargo run -p rust-ts --features foo_feature,bar_feature --bin feature_bin"
+                     "cargo test")))))
+
 (ert-deftest rust-ts-package-name ()
   (should (equal
            (compile-plus-rust-ts-package-name-from-pkgid "path+file:///absolute/path/rust-ts#0.1.0")
