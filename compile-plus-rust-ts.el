@@ -60,7 +60,8 @@
 (defun compile-plus-rust-ts--package-name ()
   "Returns cargo package name for current buffer by running `cargo pkgid`.
 Returns nil if detection fails or cargo is not available."
-  (let ((pkgid (string-trim (shell-command-to-string "cargo pkgid 2>/dev/null"))))
+  (let* ((default-directory (file-name-directory buffer-file-name))
+         (pkgid (string-trim (shell-command-to-string "cargo pkgid 2>/dev/null"))))
     (compile-plus-rust-ts--package-name-from-pkgid pkgid)))
 
 (defun compile-plus-rust-ts--package-name-from-pkgid (pkgid)
@@ -167,16 +168,6 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
       ""
     (gethash "name" (compile-plus-rust-ts--cargo-target))))
 
-(defun compile-plus-rust-ts--cargo-target-old ()
-  "Return target entry from cargo metadata for current buffer."
-  (let ((targets (seq-reduce
-                  (lambda (acc package) (append acc (gethash "targets" package)))
-                  (gethash "packages" (compile-plus-rust-ts--cargo-metadata))
-                  '())))
-    (seq-find
-     (lambda (target) (equal buffer-file-name (gethash "src_path" target)))
-     targets)))
-
 (defun compile-plus-rust-ts--cargo-target ()
   "Return target entry from cargo metadata for current buffer."
   (let (result)
@@ -193,8 +184,9 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
   (when (not compile-plus-rust-ts--cargo-metadata)
     (setq compile-plus-rust-ts--cargo-metadata
           (json-parse-string
-           (shell-command-to-string
-            "cargo metadata --no-deps --format-version 1 2>/dev/null")
+           (let ((default-directory (file-name-directory buffer-file-name)))
+             (shell-command-to-string
+              "cargo metadata --no-deps --format-version 1 2>/dev/null"))
            :array-type 'list)))
   compile-plus-rust-ts--cargo-metadata)
 
