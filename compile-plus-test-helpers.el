@@ -12,6 +12,8 @@
 ;;
 ;;; Code:
 
+(require 'find-func)
+
 (defconst compile-plus-project-dir
   (expand-file-name ".." (find-library-name "compile-plus"))
   "Stores project root.")

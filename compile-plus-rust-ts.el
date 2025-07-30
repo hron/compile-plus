@@ -149,7 +149,7 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
             compile-plus-rust-ts-test-binary-args
             (file-name-base buffer-file-name))))
 
-(defvar compile-plus-rust-ts-main
+(defvar compile-plus-rust-ts-run
   (treesit-query-compile
    'rust
    '(((function_item
@@ -157,16 +157,61 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
        body: _) @start @end
        (:equal "main" @_func_name)))))
 
+(defun compile-plus-rust-ts-bin-kind ()
+  "Return bin/example for current cargo package."
+  (car (gethash "kind" (compile-plus-rust-ts--cargo-target))))
+
+(defun compile-plus-rust-ts-bin-name ()
+  "Return name for current bin/example of the cargo package."
+  (if (string-suffix-p "src/main.rs" buffer-file-name)
+      ""
+    (gethash "name" (compile-plus-rust-ts--cargo-target))))
+
+(defun compile-plus-rust-ts--cargo-target-old ()
+  "Return target entry from cargo metadata for current buffer."
+  (let ((targets (seq-reduce
+                  (lambda (acc package) (append acc (gethash "targets" package)))
+                  (gethash "packages" (compile-plus-rust-ts--cargo-metadata))
+                  '())))
+    (seq-find
+     (lambda (target) (equal buffer-file-name (gethash "src_path" target)))
+     targets)))
+
+(defun compile-plus-rust-ts--cargo-target ()
+  "Return target entry from cargo metadata for current buffer."
+  (let (result)
+    (dolist (package (gethash "packages" (compile-plus-rust-ts--cargo-metadata)))
+      (dolist (target (gethash "targets" package))
+        (when (equal buffer-file-name (gethash "src_path" target))
+          (setq result target))))
+    result))
+
+(defvar-local compile-plus-rust-ts--cargo-metadata nil)
+
+(defun compile-plus-rust-ts--cargo-metadata ()
+  "Returns a hash table with cargo metadata for current buffer."
+  (when (not compile-plus-rust-ts--cargo-metadata)
+    (setq compile-plus-rust-ts--cargo-metadata
+          (json-parse-string
+           (shell-command-to-string
+            "cargo metadata --no-deps --format-version 1 2>/dev/null")
+           :array-type 'list)))
+  compile-plus-rust-ts--cargo-metadata)
+
 ;;;###autoload
-(defun compile-plus-rust-ts-main ()
+(defun compile-plus-rust-ts-run ()
   "Return command to run main function at point."
   (when-let* ((matches (treesit-query-capture
                         'rust
-                        compile-plus-rust-ts-main
+                        compile-plus-rust-ts-run
                         (point-min) (point-max)
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches)))
-    "cargo run --bin"))
+    (string-trim
+     (format "cargo run -p %s --%s %s"
+             (compile-plus-rust-ts-package-name)
+             (compile-plus-rust-ts-bin-kind)
+             (compile-plus-rust-ts-bin-name)))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-all ()

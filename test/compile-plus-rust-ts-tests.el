@@ -38,7 +38,14 @@
   (with-sample-file "rust-ts/src/main.rs" #'rust-ts-mode
     (search-forward "fn main")
     (should (equal (compile-plus--build-future-history)
-                   '("cargo run --bin"
+                   '("cargo run -p rust-ts --bin"
+                     "cargo test")))))
+
+(ert-deftest rust-ts-bin-target ()
+  (with-sample-file "rust-ts/src/bin/another_bin.rs" #'rust-ts-mode
+    (search-forward "fn main")
+    (should (equal (compile-plus--build-future-history)
+                   '("cargo run -p rust-ts --bin another_bin"
                      "cargo test")))))
 
 (ert-deftest rust-ts-package-name ()
@@ -59,3 +66,10 @@
                                  "cargo test")))))
            (elapsted-time (car benchmark)))
       (should (> 0.2 elapsted-time)))))
+
+(ert-deftest rust-ts-example ()
+  (with-sample-file "rust-ts/examples/hello_world.rs" #'rust-ts-mode
+    (search-forward "fn main")
+    (should (equal (compile-plus--build-future-history)
+                   '("cargo run -p rust-ts --example hello_world"
+                     "cargo test")))))
