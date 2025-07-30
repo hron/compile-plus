@@ -57,10 +57,10 @@
 
 (ert-deftest rust-ts-package-name ()
   (should (equal
-           (compile-plus-rust-ts-package-name-from-pkgid "path+file:///absolute/path/rust-ts#0.1.0")
+           (compile-plus-rust-ts--package-name-from-pkgid "path+file:///absolute/path/rust-ts#0.1.0")
            "rust-ts"))
   (should (equal
-           (compile-plus-rust-ts-package-name-from-pkgid "path+file:///absolute/path/rust-ts#custom-rust-ts@0.1.0")
+           (compile-plus-rust-ts--package-name-from-pkgid "path+file:///absolute/path/rust-ts#custom-rust-ts@0.1.0")
            "custom-rust-ts")))
 
 (ert-deftest rust-ts-slow-doctest ()

@@ -23,7 +23,7 @@
 (defcustom compile-plus-rust-ts-test-binary-args "--no-capture --include-ignored"
   "Arguments for the test binary: cargo test -- ARGS.")
 
-(defvar compile-plus-rust-ts-test-query
+(defvar compile-plus-rust-ts--test-query
   (treesit-query-compile
    'rust
    '(((attribute_item
@@ -45,7 +45,7 @@
   "Find a test under point in `rust-ts-mode'."
   (when-let* ((matches (treesit-query-capture
                         'rust
-                        compile-plus-rust-ts-test-query
+                        compile-plus-rust-ts--test-query
                         (point-min) (point-max)
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches))
@@ -53,17 +53,17 @@
 
     (format
      "cargo test -p %s -- %s %s"
-     (compile-plus-rust-ts-package-name)
+     (compile-plus-rust-ts--package-name)
      compile-plus-rust-ts-test-binary-args
      test-name)))
 
-(defun compile-plus-rust-ts-package-name ()
+(defun compile-plus-rust-ts--package-name ()
   "Returns cargo package name for current buffer by running `cargo pkgid`.
 Returns nil if detection fails or cargo is not available."
   (let ((pkgid (string-trim (shell-command-to-string "cargo pkgid 2>/dev/null"))))
-    (compile-plus-rust-ts-package-name-from-pkgid pkgid)))
+    (compile-plus-rust-ts--package-name-from-pkgid pkgid)))
 
-(defun compile-plus-rust-ts-package-name-from-pkgid (pkgid)
+(defun compile-plus-rust-ts--package-name-from-pkgid (pkgid)
   "Extracts package name from PKGID.
 path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#0.1.0
 path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1.0."
@@ -75,7 +75,7 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
            (name (car (last (string-split name "/")))))
       name)))
 
-(defvar compile-plus-rust-ts-doctest-query
+(defvar compile-plus-rust-ts--doctest-query
   (treesit-query-compile
    'rust
    '(((line_comment) :*
@@ -112,17 +112,17 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
   "Find the doctest at point in `rust-ts-mode'."
   (when-let* ((matches (treesit-query-capture
                         'rust
-                        compile-plus-rust-ts-doctest-query
+                        compile-plus-rust-ts--doctest-query
                         (point-min) (point-max)
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches))
               (test-name (treesit-node-text (alist-get 'doc_test_name captures))))
     (format "cargo test -p %s --doc -- %s %s"
-            (compile-plus-rust-ts-package-name)
+            (compile-plus-rust-ts--package-name)
             compile-plus-rust-ts-test-binary-args
             test-name)))
 
-(defvar compile-plus-rust-ts-test-mod-query
+(defvar compile-plus-rust-ts--test-mod-query
   (treesit-query-compile
    'rust
    '(((attribute_item
@@ -141,15 +141,15 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
   "Return command to run the tests for current mod."
   (when (treesit-query-capture
          'rust
-         compile-plus-rust-ts-test-mod-query
+         compile-plus-rust-ts--test-mod-query
          (point-min) (point-max)
          nil t)
     (format "cargo test -p %s -- %s %s"
-            (compile-plus-rust-ts-package-name)
+            (compile-plus-rust-ts--package-name)
             compile-plus-rust-ts-test-binary-args
             (file-name-base buffer-file-name))))
 
-(defvar compile-plus-rust-ts-run
+(defvar compile-plus-rust-ts--run-query
   (treesit-query-compile
    'rust
    '(((function_item
@@ -157,11 +157,11 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
        body: _) @start @end
        (:equal "main" @_func_name)))))
 
-(defun compile-plus-rust-ts-bin-kind ()
+(defun compile-plus-rust-ts--run-kind ()
   "Return bin/example for current cargo package."
   (car (gethash "kind" (compile-plus-rust-ts--cargo-target))))
 
-(defun compile-plus-rust-ts-bin-name ()
+(defun compile-plus-rust-ts--run-name ()
   "Return name for current bin/example of the cargo package."
   (if (string-suffix-p "src/main.rs" buffer-file-name)
       ""
@@ -198,7 +198,7 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
            :array-type 'list)))
   compile-plus-rust-ts--cargo-metadata)
 
-(defun compile-plus-rust-ts-features ()
+(defun compile-plus-rust-ts--run-features-flag ()
   "Return --features foo,bar needed for current buffer to run, if any."
   (let ((features (gethash "required-features" (compile-plus-rust-ts--cargo-target))))
     (if features
@@ -210,16 +210,16 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
   "Return command to run main function at point."
   (when-let* ((matches (treesit-query-capture
                         'rust
-                        compile-plus-rust-ts-run
+                        compile-plus-rust-ts--run-query
                         (point-min) (point-max)
                         nil t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches)))
     (string-trim
      (format "cargo run -p %s %s--%s %s"
-             (compile-plus-rust-ts-package-name)
-             (compile-plus-rust-ts-features)
-             (compile-plus-rust-ts-bin-kind)
-             (compile-plus-rust-ts-bin-name)))))
+             (compile-plus-rust-ts--package-name)
+             (compile-plus-rust-ts--run-features-flag)
+             (compile-plus-rust-ts--run-kind)
+             (compile-plus-rust-ts--run-name)))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-all ()
