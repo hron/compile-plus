@@ -226,47 +226,5 @@ path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1
   "Return command to run all tests as string."
   "cargo test")
 
-;; (defun rust-buffer-crate ()
-;;   "Try to locate Cargo.toml using `locate-dominating-file'."
-;;   (let ((dir (locate-dominating-file default-directory "Cargo.toml")))
-;;     (if dir dir default-directory)))
-
-;; cargo pkgid
-;; path+file:///home/algus/src/rune#0.1.0
-
-
-;; // For providing local `cargo check -p $pkgid` task, we do not need most of the information we have returned.
-;; // Output example in the root of Zed project:
-;; // ```sh
-;; // ❯ cargo pkgid zed
-;; // path+file:///absolute/path/to/project/zed/crates/zed#0.131.0
-;; // ```
-;; // Another variant, if a project has a custom package name or hyphen in the name:
-;; // ```
-;; // path+file:///absolute/path/to/project/custom-package#my-custom-package@0.1.0
-;; // ```
-;; //
-;; // Extracts the package name from the output according to the spec:
-;; // https://doc.rust-lang.org/cargo/reference/pkgid-spec.html#specification-grammar
-;; fn package_name_from_pkgid(pkgid: &str) -> Option<&str> {
-;;     fn split_off_suffix(input: &str, suffix_start: char) -> &str {
-;;         match input.rsplit_once(suffix_start) {
-;;             Some((without_suffix, _)) => without_suffix,
-;;             None => input,
-;;         }
-;;     }
-;;
-;;     let (version_prefix, version_suffix) = pkgid.trim().rsplit_once('#')?;
-;;     let package_name = match version_suffix.rsplit_once('@') {
-;;         Some((custom_package_name, _version)) => custom_package_name,
-;;         None => {
-;;             let host_and_path = split_off_suffix(version_prefix, '?');
-;;             let (_, package_name) = host_and_path.rsplit_once('/')?;
-;;             package_name
-;;         }
-;;     };
-;;     Some(package_name)
-;; }
-
 (provide 'compile-plus-rust-ts)
 ;;; compile-plus-rust-ts.el ends here
