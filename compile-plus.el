@@ -22,16 +22,16 @@
 (require 'compile-plus-rust-ts)
 
 (defvar compile-plus-providers-alist
-  '((rust-mode . (compile-plus-rust-ts-test-all
-                  compile-plus-rust-ts-run
-                  compile-plus-rust-ts-test-mod
+  '((rust-mode . (compile-plus-rust-ts-doctest-at-point
                   compile-plus-rust-ts-test-at-point
-                  compile-plus-rust-ts-doctest-at-point))
-    (rust-ts-mode . (compile-plus-rust-ts-test-all
-                     compile-plus-rust-ts-run
-                     compile-plus-rust-ts-test-mod
+                  compile-plus-rust-ts-test-mod
+                  compile-plus-rust-ts-run
+                  compile-plus-rust-ts-test-all))
+    (rust-ts-mode . (compile-plus-rust-ts-doctest-at-point
                      compile-plus-rust-ts-test-at-point
-                     compile-plus-rust-ts-doctest-at-point)))
+                     compile-plus-rust-ts-test-mod
+                     compile-plus-rust-ts-run
+                     compile-plus-rust-ts-test-all))
   "Contains functions to provide candidates per mode.")
 
 (defcustom compile-plus-override-providers nil
@@ -41,8 +41,9 @@
 
 (defun compile-plus--build-future-history ()
   "Returns a list of commands that is used as future history for `compile'."
-  (let ((provider-funcs (or compile-plus-override-providers
-                            (alist-get major-mode compile-plus-providers-alist)))
+  (let ((provider-funcs (reverse
+                         (or compile-plus-override-providers
+                             (alist-get major-mode compile-plus-providers-alist))))
         (result '()))
     (dolist (func provider-funcs)
       (push (funcall func) result))
