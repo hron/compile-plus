@@ -3,7 +3,6 @@
 ;; Copyright (C) 2025  Aleksei Gusev
 ;;
 ;; Author: Aleksei Gusev <aleksei.gusev@gmail.com>
-;; Maintainer: Aleksei Gusev <aleksei.gusev@gmail.com>
 ;; URL: https://github.com/hron/compile-plus.el
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "29.1"))
