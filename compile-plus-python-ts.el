@@ -3,10 +3,6 @@
 ;; Copyright (C) 2025  Aleksei Gusev
 ;;
 ;; Author: Aleksei Gusev <aleksei.gusev@gmail.com>
-;; URL: https://github.com/hron/compile-plus.el
-;; Version: 0.0.1
-;; Package-Requires: ((emacs "29.1"))
-;; Keywords: tools, processes, compile, test, rust
 ;; SPDX-License-Identifier: GPL
 ;;
 ;; This file is not part of GNU Emacs.
@@ -16,7 +12,9 @@
 ;; Defines runnables for `python-ts-mode'
 ;;
 ;;; Code:
+
 (require 'treesit)
+(require 'compile-plus-helpers)
 
 (defcustom compile-plus-python-ts-bin "python3"
   "Name of python binary used to build commands."
