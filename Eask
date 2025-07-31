@@ -8,7 +8,8 @@
 (keywords "compile" "test")
 
 (package-file "compile-plus.el")
-
-(script "test" "echo \"Error: no test specified\" && exit 1")
+(files "compile-plus-helpers.el"
+       "compile-plus-python-ts.el"
+       "compile-plus-rust-ts.el")
 
 (depends-on "emacs" "29.1")
