@@ -16,9 +16,12 @@
 ;; Defines runnables for `python-ts-mode'
 ;;
 ;;; Code:
+(require 'treesit)
 
 (defcustom compile-plus-python-ts-bin "python3"
-  "Name of python binary used to build commands.")
+  "Name of python binary used to build commands."
+  :type 'string
+  :group 'compile-plus)
 
 (defvar compile-plus-python-ts--main-query
   (treesit-query-compile

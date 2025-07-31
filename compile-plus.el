@@ -38,8 +38,18 @@
                        compile-plus-python-ts-main)))
   "Contains functions to provide candidates per mode.")
 
+
+(defgroup compile-plus nil
+  "Adjust minibuffer size and position if the frame is too wide."
+  :link '(url-link :tag "Website" "https://github.com/hron/compile-plus")
+  :link '(emacs-library-link :tag "Library Source" "compile-plus.el")
+  :group 'compilation
+  :prefix "compile-plus-")
+
 (defcustom compile-plus-override-providers nil
   "Overrides providers for current buffer."
+  :type '(function)
+  :group 'compile-plus
   :local t
   :risky t)
 
@@ -54,7 +64,9 @@
     (flatten-list result)))
 
 (defcustom compile-plus-replace-compile-command nil
-  "If set to t use the first entry of future history instead of `compile-command'.")
+  "If set to t use the first entry of future history instead of `compile-command'."
+  :type 'boolean
+  :group 'compile-plus)
 
 (defun compile-plus--read-command (command)
   "Copy of `compile-read-command', except provides future history.

@@ -20,7 +20,9 @@
 (require 'compile-plus-helpers)
 
 (defcustom compile-plus-rust-ts-test-binary-args "--no-capture --include-ignored"
-  "Arguments for the test binary: cargo test -- ARGS.")
+  "Arguments for the test binary: cargo test -- ARGS."
+  :type 'string
+  :group 'compile-plus)
 
 (defvar compile-plus-rust-ts--test-query
   (treesit-query-compile
@@ -65,8 +67,8 @@ Returns nil if detection fails or cargo is not available."
 
 (defun compile-plus-rust-ts--package-name-from-pkgid (pkgid)
   "Extracts package name from PKGID.
-path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#0.1.0
-path+file:///absolute/path/compile-plus/test/fixtures/rust-ts#custom-package@0.1.0."
+path+file:///absolute/path/package_name#0.1.0
+path+file:///absolute/path/package_name#custom-package@0.1.0."
   (if (string-match-p "@" pkgid)
       (let* ((name (car (string-split pkgid "@")))
              (name (car (last (string-split name "#")))))
