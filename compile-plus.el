@@ -20,6 +20,7 @@
 
 (require 'compile)
 (require 'compile-plus-rust-ts)
+(require 'compile-plus-python-ts)
 
 (defvar compile-plus-providers-alist
   '((rust-mode . (compile-plus-rust-ts-doctest-at-point
@@ -32,6 +33,9 @@
                      compile-plus-rust-ts-test-mod
                      compile-plus-rust-ts-run
                      compile-plus-rust-ts-test-all))
+    (python-ts-mode . (compile-plus-python-ts-unittest-method
+                       compile-plus-python-ts-unittest-class
+                       compile-plus-python-ts-main)))
   "Contains functions to provide candidates per mode.")
 
 (defcustom compile-plus-override-providers nil
