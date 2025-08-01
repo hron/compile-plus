@@ -46,8 +46,4 @@ jobs:
           version: "0.11.8"
 
       - name: Run tests
-        run: |
-          eask clean all
-          eask package
-          eask install
-          eask compile
+        run: make ci
