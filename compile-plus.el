@@ -35,19 +35,20 @@
                      compile-plus-rust-ts-test-all))
     (python-ts-mode . (compile-plus-python-ts-unittest-method
                        compile-plus-python-ts-unittest-class
+                       compile-plus-python-ts-pytest-class
                        compile-plus-python-ts-main)))
   "Contains functions to provide candidates per mode.")
 
-
 (defgroup compile-plus nil
-  "Adjust minibuffer size and position if the frame is too wide."
+  "Run \\[compile] based on the buffer content."
   :link '(url-link :tag "Website" "https://github.com/hron/compile-plus")
   :link '(emacs-library-link :tag "Library Source" "compile-plus.el")
   :group 'compilation
   :prefix "compile-plus-")
 
 (defcustom compile-plus-override-providers nil
-  "Overrides providers for current buffer."
+  "Override compile-plus providers for the current buffer."
+  :tag "Override Providers"
   :type '(function)
   :group 'compile-plus
   :local t
@@ -61,12 +62,13 @@
         (result '()))
     (dolist (func provider-funcs)
       (push (funcall func) result))
-    (flatten-list result)))
+    (seq-map #'substring-no-properties (flatten-list result))))
 
 (defcustom compile-plus-replace-compile-command nil
-  "If set to t use the first entry of future history instead of `compile-command'."
+  "If set to t use the first entry of the future history instead of `compile-command'."
   :type 'boolean
-  :group 'compile-plus)
+  :group 'compile-plus
+  :tag "Replace compile-command")
 
 (defun compile-plus--read-command (command)
   "Copy of `compile-read-command', except provides future history.

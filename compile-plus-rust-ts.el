@@ -15,10 +15,19 @@
 
 (require 'compile-plus-helpers)
 
+(defgroup compile-plus-rust nil
+  "Rust settings of `compile-plus' package."
+  :tag "Rust"
+  :link '(url-link :tag "Website" "https://github.com/hron/compile-plus")
+  :link '(emacs-library-link :tag "Library Source" "compile-plus-rust-ts.el")
+  :group 'compile-plus
+  :prefix "compile-plus-rust-")
+
 (defcustom compile-plus-rust-ts-test-binary-args "--no-capture --include-ignored"
   "Arguments for the test binary: cargo test -- ARGS."
+  :tag "Rust test binary arguments"
   :type 'string
-  :group 'compile-plus)
+  :group 'compile-plus-rust)
 
 (defvar compile-plus-rust-ts--test-query
   (treesit-query-compile

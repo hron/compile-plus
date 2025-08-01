@@ -2,16 +2,18 @@
 
   #+begin_src emacs-lisp
     (compile-plus-mode -1)
+
+    (when-let* ((buff (get-buffer "*Customize Group: Compile Plus*")))
+      (kill-buffer buff))
+
     (dolist (file (directory-files default-directory nil "\\.el$"))
       (let ((feat (intern (file-name-base file))))
         (when (featurep feat)
           (unload-feature feat t)))
       (load-file file))
+
     (compile-plus-mode +1)
-    compile-plus-providers-alist
+    (customize-group 'compile-plus)
   #+end_src
 
 #+RESULTS:
-| rust-mode      | compile-plus-rust-ts-doctest-at-point  | compile-plus-rust-ts-test-at-point    | compile-plus-rust-ts-test-mod | compile-plus-rust-ts-run | compile-plus-rust-ts-test-all |
-| rust-ts-mode   | compile-plus-rust-ts-doctest-at-point  | compile-plus-rust-ts-test-at-point    | compile-plus-rust-ts-test-mod | compile-plus-rust-ts-run | compile-plus-rust-ts-test-all |
-| python-ts-mode | compile-plus-python-ts-unittest-method | compile-plus-python-ts-unittest-class | compile-plus-python-ts-main   |                          |                               |

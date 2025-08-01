@@ -16,10 +16,29 @@
 (require 'treesit)
 (require 'compile-plus-helpers)
 
+(defgroup compile-plus-python nil
+  "Python settings of `compile-plus' package."
+  :tag "Python"
+  :link '(url-link :tag "Website" "https://github.com/hron/compile-plus")
+  :link '(emacs-library-link :tag "Library Source" "compile-plus-python-ts.el")
+  :group 'compile-plus
+  :prefix "compile-plus-python-")
+
 (defcustom compile-plus-python-ts-bin "python3"
-  "Name of python binary used to build commands."
+  "The command to use to run Python."
+  :tag "Python Command"
   :type 'string
-  :group 'compile-plus)
+  :local t
+  :group 'compile-plus-python)
+
+(defcustom compile-plus-python-ts-test-runner "unittest"
+  "Test runner to use to run Python tests."
+  :tag "Test Runner"
+  :type '(choice (const "unittest")
+                 (const "pytest"))
+  :local t
+  :group 'compile-plus-python
+  :link '(emacs-library-link :tag "Library Source" "compile-plus-python-ts.el"))
 
 (defvar compile-plus-python-ts--main-query
   (treesit-query-compile
