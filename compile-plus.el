@@ -65,7 +65,7 @@
     (seq-map #'substring-no-properties (flatten-list result))))
 
 (defcustom compile-plus-replace-compile-command nil
-  "If set to t use the first entry of the future history instead of `compile-command'."
+  "Replace `compile-command' with first entry of future history."
   :type 'boolean
   :group 'compile-plus
   :tag "Replace compile-command")
