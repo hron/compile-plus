@@ -1,5 +1,5 @@
 EMACS ?= emacs
-EASK ?= eask
+EASK ?= eask --strict
 
 .PHONY: clean package install compile test checkdoc lint ci
 
