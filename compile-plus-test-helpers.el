@@ -27,7 +27,8 @@ Use MODE as major mode."
           (buffer (find-file-noselect fixture-path)))
      (with-current-buffer buffer
        (unwind-protect
-           (funcall ,mode)
+           (goto-char (point-min))
+         (funcall ,mode)
          (progn ,@body)
          (kill-buffer buffer)))))
 

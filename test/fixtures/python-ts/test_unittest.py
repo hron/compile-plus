@@ -6,5 +6,7 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual('foo'.upper(), 'FOO')
 
 
-if __name__ == '__main__':
-    unittest.main()
+class SomeClassWithoutPrefix(unittest.TestCase):
+
+    def test_add(self):
+        self.assertEqual(2 + 2, 4)

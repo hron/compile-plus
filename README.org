@@ -3,6 +3,8 @@
   #+begin_src emacs-lisp
     (compile-plus-mode -1)
 
+    (push default-directory load-path)
+
     (when-let* ((buff (get-buffer "*Customize Group: Compile Plus*")))
       (kill-buffer buff))
 
@@ -13,7 +15,8 @@
       (load-file file))
 
     (compile-plus-mode +1)
-    (customize-group 'compile-plus)
+    ;; (customize-group 'compile-plus)
   #+end_src
 
 #+RESULTS:
+: t

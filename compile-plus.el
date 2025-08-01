@@ -33,9 +33,9 @@
                      compile-plus-rust-ts-test-mod
                      compile-plus-rust-ts-run
                      compile-plus-rust-ts-test-all))
-    (python-ts-mode . (compile-plus-python-ts-unittest-method
-                       compile-plus-python-ts-unittest-class
-                       compile-plus-python-ts-pytest-class
+    (python-ts-mode . (compile-plus-python-ts-test-method
+                       compile-plus-python-ts-test-class
+                       compile-plus-python-ts-test-file
                        compile-plus-python-ts-main)))
   "Contains functions to provide candidates per mode.")
 
