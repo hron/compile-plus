@@ -5,7 +5,7 @@
          "Run M-x `compile' based on buffer content")
 
 (website-url "https://github.com/hron/compile-plus.el")
-(keywords "compile" "test")
+(keywords "convenience" "compile" "test")
 
 (package-file "compile-plus.el")
 (files "compile-plus-helpers.el"
