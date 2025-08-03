@@ -18,10 +18,8 @@
   "Install treesit grammars needed for the tests."
   (require 'treesit)
 
-  (setq
-   treesit-language-source-alist
-   '((rust "https://github.com/tree-sitter/tree-sitter-rust")
-     (python "https://github.com/tree-sitter/tree-sitter-python")))
-
+  (setq treesit-language-source-alist
+        '((python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.23.6"))
+          (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.23.3"))))
   (treesit-install-language-grammar 'python)
   (treesit-install-language-grammar 'rust))
