@@ -44,19 +44,14 @@
        :anchor
        (function_item
         name: (_)  @test_name
-        body: _) @end))))
+        body: _) @end
+       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-at-point ()
   "Find a test under point in `rust-ts-mode'."
-  (when-let* ((matches (treesit-query-capture
-                        'rust
-                        compile-plus-rust-ts--test-query
-                        (point-min) (point-max)
-                        nil t))
-              (captures (seq-find #'compile-plus-helpers--has-point-p matches))
+  (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--test-query))
               (test-name (treesit-node-text (alist-get 'test_name captures))))
-
     (format
      "cargo test -p %s -- %s %s"
      (compile-plus-rust-ts--package-name)
@@ -112,17 +107,13 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
         (macro_definition
          name: (_) @doc_test_name))
        (mod_item
-        name: (_) @doc_test_name)] @end))))
+        name: (_) @doc_test_name)] @end
+      (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-doctest-at-point ()
   "Find the doctest at point in `rust-ts-mode'."
-  (when-let* ((matches (treesit-query-capture
-                        'rust
-                        compile-plus-rust-ts--doctest-query
-                        (point-min) (point-max)
-                        nil t))
-              (captures (seq-find #'compile-plus-helpers--has-point-p matches))
+  (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--doctest-query))
               (test-name (treesit-node-text (alist-get 'doc_test_name captures))))
     (format "cargo test -p %s --doc -- %s %s"
             (compile-plus-rust-ts--package-name)
@@ -146,11 +137,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 ;;;###autoload
 (defun compile-plus-rust-ts-test-mod ()
   "Return command to run the tests for current mod."
-  (when (treesit-query-capture
-         'rust
-         compile-plus-rust-ts--test-mod-query
-         (point-min) (point-max)
-         nil t)
+  (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
     (format "cargo test -p %s -- %s %s"
             (compile-plus-rust-ts--package-name)
             compile-plus-rust-ts-test-binary-args
@@ -162,7 +149,8 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
    '(((function_item
        name: (_) @_func_name
        body: _) @start @end
-       (:equal "main" @_func_name)))))
+       (:equal "main" @_func_name)
+       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
 (defun compile-plus-rust-ts--run-kind ()
   "Return bin/example for current cargo package."
@@ -206,12 +194,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 ;;;###autoload
 (defun compile-plus-rust-ts-run ()
   "Return command to run main function at point."
-  (when-let* ((matches (treesit-query-capture
-                        'rust
-                        compile-plus-rust-ts--run-query
-                        (point-min) (point-max)
-                        nil t))
-              (captures (seq-find #'compile-plus-helpers--has-point-p matches)))
+  (when (treesit-query-capture 'rust compile-plus-rust-ts--run-query)
     (string-trim
      (format "cargo run -p %s %s--%s %s"
              (compile-plus-rust-ts--package-name)

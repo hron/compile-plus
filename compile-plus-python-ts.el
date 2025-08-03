@@ -50,19 +50,15 @@
                    operators: "=="
                    (string) @_rhs)
        (:equal "__name__" @_lhs)
-       (:match "^[\"']__main__[\"']$" @_rhs))) @start @end)))
+       (:match "^[\"']__main__[\"']$" @_rhs)) @start @end
+      (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
 (defun compile-plus-python-ts-main ()
   "Return command line to run the Python main module.
 This function checks if the current buffer is a Python source file with
 defined __main__ and returns a string with the command line that
 can be used for `compile' to run the file."
-  (when-let* ((matches (treesit-query-capture
-                        'python
-                        compile-plus-python-ts--main-query
-                        nil nil
-                        nil t))
-              (captures (seq-find #'compile-plus-helpers--has-point-p matches))
+  (when-let* ((captures (treesit-query-capture 'python compile-plus-python-ts--main-query))
               (relative-buffer-path (file-relative-name buffer-file-name default-directory)))
     (format "%s %s" compile-plus-python-ts-bin relative-buffer-path)))
 
@@ -74,7 +70,8 @@ can be used for `compile' to run the file."
        superclasses: (argument_list
                       [(identifier) @_superclass
                        (attribute (identifier) @_superclass)])
-       (:equal "TestCase" @_superclass ))) @start @end)))
+       (:equal "TestCase" @_superclass)) @start @end
+       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
 (defvar compile-plus-python-ts--pytest-class-query
   (treesit-query-compile
@@ -82,7 +79,8 @@ can be used for `compile' to run the file."
    '((((module
         (class_definition
          name: (identifier) @class-name
-         (:match "^Test" @class-name)) @start @end))))))
+         (:match "^Test" @class-name)) @start @end
+        (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defun compile-plus-python-ts-test-class ()
   "Return command line to run a test class."
@@ -91,15 +89,9 @@ can be used for `compile' to run the file."
                            '(compile-plus-python-ts--pytest-class-query
                              compile-plus-python-ts--unittest-class-query)
                          '(compile-plus-python-ts--unittest-class-query)))
-              (matches (seq-reduce
-                        (lambda (acc query)
-                          (append acc (treesit-query-capture 'python
-                                                             (symbol-value query)
-                                                             nil nil
-                                                             nil t)))
-                        queries
-                        '()))
-              (captures (seq-find #'compile-plus-helpers--has-point-p matches))
+              (captures  (compile-plus-treesit-query-capture
+                          'python
+                          (seq-map #'symbol-value queries)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
               (module (file-name-base buffer-file-name)))
     (format "%s -m %s %s.%s" compile-plus-python-ts-bin test-runner module class-name)))
@@ -116,7 +108,8 @@ can be used for `compile' to run the file."
         body: (block
                (function_definition
                 name: (identifier) @method-name
-                (:match "^test.*" @method-name ))) @start @end))))))
+                (:match "^test.*" @method-name ))) @start @end
+        (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defvar compile-plus-python-ts--pytest-method-query
   (treesit-query-compile
@@ -126,7 +119,8 @@ can be used for `compile' to run the file."
         body: (block
                (function_definition
                 name: (identifier) @method-name
-                (:match "^test.*" @method-name ))) @start @end))))))
+                (:match "^test.*" @method-name ))) @start @end
+        (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defun compile-plus-python-ts-test-method ()
   "Return command line to run a method of subclass of unittest.TestCase."
@@ -135,12 +129,9 @@ can be used for `compile' to run the file."
                            '(compile-plus-python-ts--pytest-method-query
                              compile-plus-python-ts--unittest-method-query)
                          '(compile-plus-python-ts--unittest-method-query)))
-              (matches (compile-plus-treesit-query-capture 'python
-                                                           queries
-                                                           nil nil
-                                                           nil
-                                                           t))
-              (captures (seq-find #'compile-plus-helpers--has-point-p matches))
+              (captures (compile-plus-treesit-query-capture
+                         'python
+                         (seq-map #'symbol-value queries)))
               (method-name (treesit-node-text (alist-get 'method-name captures)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
               (module (file-name-base buffer-file-name)))

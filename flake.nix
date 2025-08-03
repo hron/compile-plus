@@ -40,6 +40,9 @@
       in
       {
         devShells = {
+          emacs29 = mkEmacsEnv {
+            emacs = nix-emacs-ci.packages.${system}.emacs-29-4;
+          };
           emacs30 = mkEmacsEnv {
             emacs = nix-emacs-ci.packages.${system}.emacs-30-1;
           };
