@@ -62,7 +62,7 @@
   "Return cargo package name for current buffer by running `cargo pkgid`.
 Return nil if detection fails or cargo is not available."
   (let* ((default-directory (file-name-directory buffer-file-name))
-         (pkgid (string-trim (shell-command-to-string "cargo pkgid 2>/dev/null"))))
+         (pkgid (string-trim (shell-command-to-string "cargo pkgid"))))
     (compile-plus-rust-ts--package-name-from-pkgid pkgid)))
 
 (defun compile-plus-rust-ts--package-name-from-pkgid (pkgid)
@@ -180,7 +180,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
           (json-parse-string
            (let ((default-directory (file-name-directory buffer-file-name)))
              (shell-command-to-string
-              "cargo metadata --no-deps --format-version 1 2>/dev/null"))
+              "cargo metadata --no-deps --format-version 1"))
            :array-type 'list)))
   compile-plus-rust-ts--cargo-metadata)
 
