@@ -66,21 +66,6 @@ can be used for `compile' to run the file."
               (relative-buffer-path (file-relative-name buffer-file-name default-directory)))
     (format "%s %s" compile-plus-python-ts-bin relative-buffer-path)))
 
-(defun compile-plus-treesit-multi-query-capture
-    (node queries &optional beg end node-only grouped)
-  "Run `treesit-query-capture' for each of QUERIES and combine the results.
-NODE BEG END NODE-ONLY GROUPED are passed through."
-  (seq-reduce
-   (lambda (acc query)
-     (let ((captures (treesit-query-capture node
-                                            (symbol-value query)
-                                            beg end
-                                            node-only
-                                            grouped)))
-       (append acc captures)))
-   queries
-   '()))
-
 (defvar compile-plus-python-ts--unittest-class-query
   (treesit-query-compile
    'python
@@ -150,11 +135,11 @@ NODE BEG END NODE-ONLY GROUPED are passed through."
                            '(compile-plus-python-ts--pytest-method-query
                              compile-plus-python-ts--unittest-method-query)
                          '(compile-plus-python-ts--unittest-method-query)))
-              (matches (compile-plus-treesit-multi-query-capture 'python
-                                                                 queries
-                                                                 nil nil
-                                                                 nil
-                                                                 t))
+              (matches (compile-plus-treesit-query-capture 'python
+                                                           queries
+                                                           nil nil
+                                                           nil
+                                                           t))
               (captures (seq-find #'compile-plus-helpers--has-point-p matches))
               (method-name (treesit-node-text (alist-get 'method-name captures)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
