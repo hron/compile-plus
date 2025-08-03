@@ -55,7 +55,7 @@
   :risky t)
 
 (defun compile-plus--build-future-history ()
-  "Returns a list of commands that is used as future history for `compile'."
+  "Return a list of commands that is used as future history for `compile'."
   (let ((provider-funcs (reverse
                          (or compile-plus-override-providers
                              (alist-get major-mode compile-plus-providers-alist))))
