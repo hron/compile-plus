@@ -13,3 +13,15 @@
        "compile-plus-rust-ts.el")
 
 (depends-on "emacs" "29.1")
+
+(eask-defcommand install-treesit-grammars
+  "Install treesit grammars needed for the tests."
+  (require 'treesit)
+
+  (setq
+   treesit-language-source-alist
+   '((rust "https://github.com/tree-sitter/tree-sitter-rust")
+     (python "https://github.com/tree-sitter/tree-sitter-python")))
+
+  (treesit-install-language-grammar 'python)
+  (treesit-install-language-grammar 'rust))

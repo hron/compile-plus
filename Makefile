@@ -17,16 +17,7 @@ package:
 
 install:
 	$(EASK) install
-	$(EASK) emacs --batch \
-							-l treesit \
-							--eval "(progn \
-												(push '(python \"https://github.com/tree-sitter/tree-sitter-python\") \
-															treesit-language-source-alist) \
-												(push '(rust \"https://github.com/tree-sitter/tree-sitter-rust\") \
-															treesit-language-source-alist) \
-												(setq treesit-auto-install-grammar 'always) \
-												(treesit-install-language-grammar 'python) \
-												(treesit-install-language-grammar 'rust))"
+	$(EASK) run command install-treesit-grammars
 
 compile:
 	$(EASK) compile
