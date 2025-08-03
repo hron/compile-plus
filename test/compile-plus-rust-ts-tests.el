@@ -14,46 +14,44 @@
 (ert-deftest rust-ts-test-at-point ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
     (search-forward "fn test_sub_foo")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"
-                     "cargo test -p rust-ts -- --no-capture --include-ignored sub"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-test-at-point)
+                   "cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"))))
 
 (ert-deftest rust-ts-package-argument ()
   (with-sample-file "rust-ts/crates/multi/src/lib.rs" #'rust-ts-mode
     (search-forward "fn test_multi")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo test -p multi -- --no-capture --include-ignored test_multi"
-                     "cargo test -p multi -- --no-capture --include-ignored lib"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-test-at-point)
+                   "cargo test -p multi -- --no-capture --include-ignored test_multi"))))
 
 (ert-deftest rust-ts-doctest-at-point ()
   (with-sample-file "rust-ts/src/add.rs" #'rust-ts-mode
     (search-forward "fn add")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo test -p rust-ts --doc -- --no-capture --include-ignored add"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-doctest-at-point)
+                   "cargo test -p rust-ts --doc -- --no-capture --include-ignored add"))))
+
+(ert-deftest rust-ts-mod ()
+  (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
+    (search-forward "#[cfg(test)]")
+    (should (equal (compile-plus-rust-ts-test-mod)
+                   "cargo test -p rust-ts -- --no-capture --include-ignored sub"))))
 
 (ert-deftest rust-ts-main ()
   (with-sample-file "rust-ts/src/main.rs" #'rust-ts-mode
     (search-forward "fn main")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo run -p rust-ts --bin"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-run)
+                   "cargo run -p rust-ts --bin"))))
 
 (ert-deftest rust-ts-bin-target ()
   (with-sample-file "rust-ts/src/bin/another_bin.rs" #'rust-ts-mode
     (search-forward "fn main")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo run -p rust-ts --bin another_bin"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-run)
+                   "cargo run -p rust-ts --bin another_bin"))))
 
 (ert-deftest rust-ts-bin-target-with-feature ()
   (with-sample-file "rust-ts/src/bin/feature_bin.rs" #'rust-ts-mode
     (search-forward "fn main")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo run -p rust-ts --features foo_feature,bar_feature --bin feature_bin"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-run)
+                   "cargo run -p rust-ts --features foo_feature,bar_feature --bin feature_bin"))))
 
 (ert-deftest rust-ts-package-name ()
   (should (equal
@@ -68,15 +66,13 @@
     (search-forward "```")
     (let* ((benchmark
             (benchmark-run
-                (should (equal (compile-plus--build-future-history)
-                               '("cargo test -p rust-ts --doc -- --no-capture --include-ignored add"
-                                 "cargo test")))))
+                (should (equal (compile-plus-rust-ts-doctest-at-point)
+                               "cargo test -p rust-ts --doc -- --no-capture --include-ignored add"))))
            (elapsted-time (car benchmark)))
       (should (> 0.2 elapsted-time)))))
 
 (ert-deftest rust-ts-example ()
   (with-sample-file "rust-ts/examples/hello_world.rs" #'rust-ts-mode
     (search-forward "fn main")
-    (should (equal (compile-plus--build-future-history)
-                   '("cargo run -p rust-ts --example hello_world"
-                     "cargo test")))))
+    (should (equal (compile-plus-rust-ts-run)
+                   "cargo run -p rust-ts --example hello_world"))))

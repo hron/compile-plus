@@ -52,7 +52,7 @@
   "Find a test under point in `rust-ts-mode'."
   (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--test-query))
               (test-name (treesit-node-text (alist-get 'test_name captures))))
-    (format
+    (compile-plus--format-no-prop
      "cargo test -p %s -- %s %s"
      (compile-plus-rust-ts--package-name)
      compile-plus-rust-ts-test-binary-args
@@ -115,10 +115,10 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
   "Find the doctest at point in `rust-ts-mode'."
   (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--doctest-query))
               (test-name (treesit-node-text (alist-get 'doc_test_name captures))))
-    (format "cargo test -p %s --doc -- %s %s"
-            (compile-plus-rust-ts--package-name)
-            compile-plus-rust-ts-test-binary-args
-            test-name)))
+    (compile-plus--format-no-prop "cargo test -p %s --doc -- %s %s"
+                                  (compile-plus-rust-ts--package-name)
+                                  compile-plus-rust-ts-test-binary-args
+                                  test-name)))
 
 (defvar compile-plus-rust-ts--test-mod-query
   (treesit-query-compile
@@ -138,10 +138,10 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 (defun compile-plus-rust-ts-test-mod ()
   "Build a command to test the current mod."
   (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
-    (format "cargo test -p %s -- %s %s"
-            (compile-plus-rust-ts--package-name)
-            compile-plus-rust-ts-test-binary-args
-            (file-name-base buffer-file-name))))
+    (compile-plus--format-no-prop "cargo test -p %s -- %s %s"
+                                  (compile-plus-rust-ts--package-name)
+                                  compile-plus-rust-ts-test-binary-args
+                                  (file-name-base buffer-file-name))))
 
 (defvar compile-plus-rust-ts--run-query
   (treesit-query-compile
@@ -196,11 +196,11 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
   "Return command to run main function at point."
   (when (treesit-query-capture 'rust compile-plus-rust-ts--run-query)
     (string-trim
-     (format "cargo run -p %s %s--%s %s"
-             (compile-plus-rust-ts--package-name)
-             (compile-plus-rust-ts--run-features-flag)
-             (compile-plus-rust-ts--run-kind)
-             (compile-plus-rust-ts--run-name)))))
+     (compile-plus--format-no-prop "cargo run -p %s %s--%s %s"
+                                   (compile-plus-rust-ts--package-name)
+                                   (compile-plus-rust-ts--run-features-flag)
+                                   (compile-plus-rust-ts--run-kind)
+                                   (compile-plus-rust-ts--run-name)))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-all ()

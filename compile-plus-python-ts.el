@@ -60,7 +60,7 @@ defined __main__ and returns a string with the command line that
 can be used for `compile' to run the file."
   (when-let* ((captures (treesit-query-capture 'python compile-plus-python-ts--main-query))
               (relative-buffer-path (file-relative-name buffer-file-name default-directory)))
-    (format "%s %s" compile-plus-python-ts-bin relative-buffer-path)))
+    (compile-plus--format-no-prop "%s %s" compile-plus-python-ts-bin relative-buffer-path)))
 
 (defvar compile-plus-python-ts--unittest-class-query
   (treesit-query-compile
@@ -94,7 +94,7 @@ can be used for `compile' to run the file."
                           (seq-map #'symbol-value queries)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
               (module (file-name-base buffer-file-name)))
-    (format "%s -m %s %s.%s" compile-plus-python-ts-bin test-runner module class-name)))
+    (compile-plus--format-no-prop "%s -m %s %s.%s" compile-plus-python-ts-bin test-runner module class-name)))
 
 (defvar compile-plus-python-ts--unittest-method-query
   (treesit-query-compile
@@ -135,12 +135,12 @@ can be used for `compile' to run the file."
               (method-name (treesit-node-text (alist-get 'method-name captures)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
               (module (file-name-base buffer-file-name)))
-    (format "%s -m %s %s.%s.%s"
-            compile-plus-python-ts-bin
-            test-runner
-            module
-            class-name
-            method-name)))
+    (compile-plus--format-no-prop "%s -m %s %s.%s.%s"
+                                  compile-plus-python-ts-bin
+                                  test-runner
+                                  module
+                                  class-name
+                                  method-name)))
 
 (defvar compile-plus-python-ts--test-file-query
   (treesit-query-compile
@@ -152,10 +152,10 @@ can be used for `compile' to run the file."
 (defun compile-plus-python-ts-test-file ()
   "Return command line to run the current buffer as a test module."
   (when (treesit-query-capture 'python compile-plus-python-ts--test-file-query)
-    (format "%s -m %s %s"
-            compile-plus-python-ts-bin
-            compile-plus-python-ts-test-runner
-            (file-relative-name buffer-file-name))))
+    (compile-plus--format-no-prop "%s -m %s %s"
+                                  compile-plus-python-ts-bin
+                                  compile-plus-python-ts-test-runner
+                                  (file-relative-name buffer-file-name))))
 
 (provide 'compile-plus-python-ts)
 ;;; compile-plus-python-ts.el ends here
