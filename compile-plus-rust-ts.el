@@ -167,7 +167,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
   (let (result)
     (dolist (package (gethash "packages" (compile-plus-rust-ts--cargo-metadata)))
       (dolist (target (gethash "targets" package))
-        (when (equal buffer-file-name (gethash "src_path" target))
+        (when (equal buffer-file-name (expand-file-name (gethash "src_path" target)))
           (setq result target))))
     result))
 
