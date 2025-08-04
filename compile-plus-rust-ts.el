@@ -186,10 +186,10 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 
 (defun compile-plus-rust-ts--run-features-flag ()
   "Return --features foo,bar needed for current buffer to run, if any."
-  (let ((features (gethash "required-features" (compile-plus-rust-ts--cargo-target))))
-    (if features
-        (concat "--features " (string-join features ",") " ")
-      "")))
+  (if-let* ((target (compile-plus-rust-ts--cargo-target))
+            (features (gethash "required-features" target)))
+      (concat "--features " (string-join features ",") " ")
+    ""))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-run ()
