@@ -14,8 +14,10 @@
 
 (require 'find-func)
 
+(setq ert-batch-backtrace-right-margin 100)
+
 (defconst compile-plus-project-dir
-  (expand-file-name ".." (find-library-name "compile-plus"))
+  (expand-file-name (file-name-directory load-file-name))
   "Stores project root.")
 
 (defmacro with-sample-file (file-path mode &rest body)

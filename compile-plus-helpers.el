@@ -13,11 +13,31 @@
 ;;
 ;;; Code:
 
-(defun compile-plus-helpers--has-point-p (match)
-  "Detect if MATCH includes the point."
-  (let ((beg (treesit-node-start (alist-get 'start match)))
-        (end (treesit-node-end (alist-get 'end match))))
-    (and (<= beg (point)) (>= end (point)))))
+(require 'treesit)
+
+(defun compile-plus-helpers--point-between-nodes-p (beg end)
+  "Detect if the point is between BEG and END nodes."
+  (and (<= (treesit-node-start beg) (point))
+       (>= (treesit-node-end end) (point))))
+
+(defun compile-plus-treesit-query-capture
+    (node queries &optional beg end node-only)
+  "Run `treesit-query-capture' for each of QUERIES and combine the results.
+NODE BEG END NODE-ONLY GROUPED are passed through."
+  (seq-reduce
+   (lambda (acc query)
+     (let ((captures (treesit-query-capture node
+                                            query
+                                            beg end
+                                            node-only)))
+       (append acc captures)))
+   queries
+   '()))
+
+(defun compile-plus--format-no-prop (&rest format-args)
+  "The same as `format', but without text properties.
+FORMAT-ARGS are passed through."
+  (substring-no-properties (apply #'format format-args)))
 
 (provide 'compile-plus-helpers)
 ;;; compile-plus-helpers.el ends here

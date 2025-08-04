@@ -7,7 +7,7 @@
 ;; URL: https://github.com/hron/compile-plus.el
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "29.1"))
-;; Keywords: tools, processes, compile, test
+;; Keywords: convenience, compile, test
 ;; SPDX-License-Identifier: GPL
 ;;
 ;; This file is not part of GNU Emacs.
@@ -55,7 +55,7 @@
   :risky t)
 
 (defun compile-plus--build-future-history ()
-  "Returns a list of commands that is used as future history for `compile'."
+  "Return a list of commands that is used as future history for `compile'."
   (let ((provider-funcs (reverse
                          (or compile-plus-override-providers
                              (alist-get major-mode compile-plus-providers-alist))))
