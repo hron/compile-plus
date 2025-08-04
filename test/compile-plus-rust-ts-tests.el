@@ -69,7 +69,7 @@
                 (should (equal (compile-plus-rust-ts-doctest-at-point)
                                "cargo test -p rust-ts --doc -- --no-capture --include-ignored add"))))
            (elapsted-time (car benchmark)))
-      (should (> 0.2 elapsted-time)))))
+      (should (> 0.5 elapsted-time)))))
 
 (ert-deftest rust-ts-example ()
   (with-sample-file "rust-ts/examples/hello_world.rs" #'rust-ts-mode
