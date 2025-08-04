@@ -21,5 +21,18 @@
   (setq treesit-language-source-alist
         '((python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.23.6"))
           (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.23.3"))))
+
+  ;; At least on Github Action CI when Emacs builds tree-sitter
+  ;; grammars the result libraries are for x86_64 instead of arm64
+  (when (eq system-type 'darwin)
+    (advice-add #'treesit--call-process-signal
+                  :around
+                  (lambda (oldfunc &rest args)
+                    (let ((args (if (string-match "cc" (car args))
+                                    (append args '("-arch" "arm64"))
+                                  args)))
+                      (message "Running: %s" args)
+                      (apply oldfunc args)))))
+
   (treesit-install-language-grammar 'python)
   (treesit-install-language-grammar 'rust))
