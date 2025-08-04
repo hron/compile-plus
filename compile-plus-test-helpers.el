@@ -14,6 +14,8 @@
 
 (require 'find-func)
 
+(setq ert-batch-backtrace-right-margin 100)
+
 (defconst compile-plus-project-dir
   (expand-file-name (file-name-directory load-file-name))
   "Stores project root.")
