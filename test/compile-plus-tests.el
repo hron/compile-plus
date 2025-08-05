@@ -37,3 +37,12 @@
       (compile-plus-mode +1)
       (should (equal (compile-plus--build-future-history)
                      '("Sample #1" "Sample #2"))))))
+
+(ert-deftest ignore-errors-in-provider-functions ()
+  (with-temp-buffer
+    (let ((compile-plus-providers-alist
+           '((text-mode . ((lambda () (error "Needed external file doesn't exist")))))))
+      (text-mode)
+      (compile-plus-mode +1)
+      (should (equal (compile-plus--build-future-history)
+                     '())))))

@@ -61,7 +61,8 @@
                              (alist-get major-mode compile-plus-providers-alist))))
         (result '()))
     (dolist (func provider-funcs)
-      (push (funcall func) result))
+      (with-demoted-errors "Error in a provider func: %S"
+        (push (funcall func) result)))
     (seq-map #'substring-no-properties (flatten-list result))))
 
 (defcustom compile-plus-replace-compile-command nil
