@@ -93,8 +93,12 @@ can be used for `compile' to run the file."
                           'python
                           (seq-map #'symbol-value queries)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
-              (module (file-name-base buffer-file-name)))
-    (compile-plus--format-no-prop "%s -m %s %s.%s" compile-plus-python-ts-bin test-runner module class-name)))
+              (test-file (file-relative-name buffer-file-name default-directory)))
+    (compile-plus--format-no-prop "%s -m %s %s -k %s"
+                                  compile-plus-python-ts-bin
+                                  test-runner
+                                  test-file
+                                  class-name)))
 
 (defvar compile-plus-python-ts--unittest-method-query
   (treesit-query-compile
@@ -134,12 +138,16 @@ can be used for `compile' to run the file."
                          (seq-map #'symbol-value queries)))
               (method-name (treesit-node-text (alist-get 'method-name captures)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
-              (module (file-name-base buffer-file-name)))
-    (compile-plus--format-no-prop "%s -m %s %s.%s.%s"
+              (test-file (file-relative-name buffer-file-name default-directory))
+              (delimiter (if (equal "pytest" test-runner)
+                             " and "
+                           ".")))
+    (compile-plus--format-no-prop "%s -m %s %s -k '%s%s%s'"
                                   compile-plus-python-ts-bin
                                   test-runner
-                                  module
+                                  test-file
                                   class-name
+                                  delimiter
                                   method-name)))
 
 (defvar compile-plus-python-ts--test-file-query
