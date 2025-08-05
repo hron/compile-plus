@@ -31,7 +31,6 @@
                     (let ((args (if (string-match "cc" (car args))
                                     (append args '("-arch" "arm64"))
                                   args)))
-                      (message "Running: %s" args)
                       (apply oldfunc args)))))
 
   (treesit-install-language-grammar 'python)
