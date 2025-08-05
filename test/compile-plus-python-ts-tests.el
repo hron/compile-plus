@@ -8,8 +8,11 @@
 ;;; Code:
 
 (require 'compile-plus)
-(require 'compile-plus-test-helpers)
 (require 'ert)
+
+(unless (macrop 'with-sample-file)
+  (load (expand-file-name "./compile-plus-test-helpers"
+                          (file-name-directory load-file-name))))
 
 (ert-deftest python-ts-main ()
   (with-sample-file "python-ts/main.py" #'python-ts-mode

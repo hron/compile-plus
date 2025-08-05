@@ -17,7 +17,7 @@
 (setq ert-batch-backtrace-right-margin 100)
 
 (defconst compile-plus-project-dir
-  (expand-file-name (file-name-directory load-file-name))
+  (expand-file-name ".." (file-name-directory load-file-name))
   "Stores project root.")
 
 (defmacro with-sample-file (file-path mode &rest body)
@@ -33,6 +33,3 @@ Use MODE as major mode."
          (funcall ,mode)
          (progn ,@body)
          (kill-buffer buffer)))))
-
-(provide 'compile-plus-test-helpers)
-;;; compile-plus-test-helpers.el ends here

@@ -3,16 +3,19 @@
   #+begin_src emacs-lisp
     (compile-plus-mode -1)
 
-    (push default-directory load-path)
+    (dolist (dir (list default-directory (expand-file-name "test" default-directory)))
+      (push dir load-path))
 
     (when-let* ((buff (get-buffer "*Customize Group: Compile Plus*")))
       (kill-buffer buff))
 
-    (dolist (file (directory-files default-directory nil "\\.el$"))
-      (let ((feat (intern (file-name-base file))))
-        (when (featurep feat)
-          (unload-feature feat t)))
-      (load-file file))
+    (let ((all-files (append (directory-files default-directory nil "\\.el$")
+                             '("test/compile-plus-test-helpers.el"))))
+      (dolist (file all-files)
+        (let ((feat (intern (file-name-base file))))
+          (when (featurep feat)
+            (unload-feature feat t)))
+        (load-file file)))
 
     (compile-plus-mode +1)
     ;; (customize-group 'compile-plus)

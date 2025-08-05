@@ -8,8 +8,11 @@
 ;;; Code:
 
 (require 'compile-plus)
-(require 'compile-plus-test-helpers)
 (require 'ert)
+
+(unless (macrop 'with-sample-file)
+  (load (expand-file-name "./compile-plus-test-helpers"
+                          (file-name-directory load-file-name))))
 
 (ert-deftest rust-ts-test-at-point ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode

@@ -23,10 +23,10 @@ compile:
 	$(EASK) compile
 
 test:
-	$(EASK) test ert ./test/*.el
+	$(EASK) test ert ./test/*-tests.el
 
 test-fast:
-	$(EMACS) --batch  -L . -l test/*.el --eval '(ert-run-tests-batch-and-exit t)'
+	$(EMACS) --batch  -L . -l test/*-tests.el --eval '(ert-run-tests-batch-and-exit t)'
 
 checkdoc:
 	$(EASK) lint checkdoc --strict
