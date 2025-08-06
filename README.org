@@ -23,3 +23,17 @@
 
 #+RESULTS:
 : t
+
+* Future emacs-lisp-mode future history maybe:
+
+  #+begin_src emacs-lisp
+(with-current-buffer (get-buffer "compile-plus-rust-ts-tests.el")
+  (save-excursion
+    (goto-char (pos-eol))
+    (search-backward-regexp "ert-deftest \\([^ ]+\\)")
+    (let ((test-file (file-relative-name buffer-file-name))
+          (test-name (match-string-no-properties 1)))
+      (format "emacs --batch  -L . -l %s --eval '(ert-run-tests-batch-and-exit \"%s\")'"
+              test-file
+              test-name))))
+  #+end_src
