@@ -6,3 +6,10 @@ class TestPytestClass:
 
 def test_function():
     assert 2 + 2 == 4
+
+
+def doctest():
+    """
+    >>> 2+3
+    4
+    """

@@ -90,3 +90,9 @@
       (search-forward "def test_function")
       (should (equal (compile-plus-python-ts-pytest-function)
                      "python3 -m pytest test_pytest.py -k test_function")))))
+
+(ert-deftest python-ts-doctest ()
+  (with-sample-file "python-ts/test_pytest.py" #'python-ts-mode
+    (search-forward ">>> ")
+    (should (equal (compile-plus-python-ts-doctest-file)
+                   "python -m doctest test/fixtures/python-ts/test_pytest.py "))))
