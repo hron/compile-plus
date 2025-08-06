@@ -108,11 +108,11 @@ can be used for `compile' to run the file."
         superclasses: (argument_list
                        [(identifier) @_superclass
                         (attribute (identifier) @_superclass)])
-        (:equal "TestCase" @_superclass )
+        (:equal "TestCase" @_superclass)
         body: (block
                (function_definition
                 name: (identifier) @method-name
-                (:match "^test.*" @method-name ))) @start @end
+                (:match "^test.*" @method-name))) @start @end
         (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defvar compile-plus-python-ts--pytest-method-query
@@ -123,7 +123,7 @@ can be used for `compile' to run the file."
         body: (block
                (function_definition
                 name: (identifier) @method-name
-                (:match "^test.*" @method-name ))) @start @end
+                (:match "^test.*" @method-name))) @start @end
         (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defun compile-plus-python-ts-test-method ()
@@ -165,5 +165,23 @@ can be used for `compile' to run the file."
                                   compile-plus-python-ts-test-runner
                                   (file-relative-name buffer-file-name))))
 
+(defvar compile-plus-python-ts--pytest-function-query
+  (treesit-query-compile
+   'python
+   '(((function_definition
+       name: (identifier) @method-name
+       (:match "^test.*" @method-name)) @start @end
+       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
+
+(defun compile-plus-python-ts-pytest-function ()
+  "Return command line to run the current function as pytest test."
+  (when-let* ((captures (treesit-query-capture
+                         'python compile-plus-python-ts--pytest-function-query))
+              (method-name (treesit-node-text (alist-get 'method-name captures)))
+              (test-file (file-relative-name buffer-file-name)))
+    (compile-plus--format-no-prop "%s -m pytest %s -k %s"
+                                  compile-plus-python-ts-bin
+                                  test-file
+                                  method-name)))
 (provide 'compile-plus-python-ts)
 ;;; compile-plus-python-ts.el ends here

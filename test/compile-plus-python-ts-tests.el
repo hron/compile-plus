@@ -84,3 +84,9 @@
       (should (equal (compile-plus-python-ts-test-class)
                      "python3 -m pytest test_pytest.py -k TestPytestClass")))))
 
+(ert-deftest python-ts-pytest-function ()
+  (let ((compile-plus-python-ts-test-runner "pytest"))
+    (with-sample-file "python-ts/test_pytest.py" #'python-ts-mode
+      (search-forward "def test_function")
+      (should (equal (compile-plus-python-ts-pytest-function)
+                     "python3 -m pytest test_pytest.py -k test_function")))))
