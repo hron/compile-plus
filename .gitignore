@@ -20,4 +20,5 @@ dist/
 .DS_Store
 /test/fixtures/rust-ts/target/
 /test/fixtures/rust-ts/crates/multi/target/
+
 *.pyc
