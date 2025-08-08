@@ -16,9 +16,15 @@
 (require 'treesit)
 
 (defun compile-plus-helpers--point-between-nodes-p (beg end)
-  "Detect if the point is between BEG and END nodes."
-  (and (<= (treesit-node-start beg) (point))
-       (>= (treesit-node-end end) (point))))
+  "Detect if the point is between BEG and END nodes.
+Use end of the line instead of point if the point is at the beginning of
+the line the following char is a space."
+  (let ((p (if (and (equal (point) (point-at-bol))
+                    (eq (following-char) ?\s))
+               (line-end-position)
+             (point))))
+    (and (<= (treesit-node-start beg) p)
+         (>= (treesit-node-end end) p))))
 
 (defun compile-plus-treesit-query-capture
     (node queries &optional beg end node-only)
