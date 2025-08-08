@@ -112,7 +112,7 @@ can be used for `compile' to run the file."
         body: (block
                (function_definition
                 name: (identifier) @method-name
-                (:match "^test.*" @method-name))) @start @end
+                (:match "^test.*" @method-name))  @start @end)
         (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defvar compile-plus-python-ts--pytest-method-query
@@ -123,7 +123,7 @@ can be used for `compile' to run the file."
         body: (block
                (function_definition
                 name: (identifier) @method-name
-                (:match "^test.*" @method-name))) @start @end
+                (:match "^test.*" @method-name)) @start @end)
         (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
 (defun compile-plus-python-ts-test-method ()

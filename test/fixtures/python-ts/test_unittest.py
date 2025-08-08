@@ -2,6 +2,9 @@ import unittest
 
 class TestStringMethods(unittest.TestCase):
 
+    def test_capitalize(self):
+        self.assertEqual('foo'.capitalize(), 'Foo')
+
     def test_upper(self):
         self.assertEqual('foo'.upper(), 'FOO')
 
