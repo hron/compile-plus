@@ -43,7 +43,7 @@
        (equal (compile-plus-python-ts-test-method)
               "python3 -m unittest test_unittest.py -k 'TestStringMethods.test_upper'")))))
 
-(ert-deftest python-ts-unittest-method-with-point-at-bol ()
+(ert-deftest python-ts-unittest-method-with-point-at-beginning-of-the-line ()
   (let ((compile-plus-python-ts-test-runner "unittest"))
     (with-sample-file "python-ts/test_unittest.py" #'python-ts-mode
       (search-forward "def test_upper")

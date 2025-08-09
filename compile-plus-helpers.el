@@ -19,7 +19,7 @@
   "Detect if the point is between BEG and END nodes.
 Use end of the line instead of point if the point is at the beginning of
 the line the following char is a space."
-  (let ((p (if (and (equal (point) (point-at-bol))
+  (let ((p (if (and (equal (point) (line-beginning-position))
                     (eq (following-char) ?\s))
                (line-end-position)
              (point))))
