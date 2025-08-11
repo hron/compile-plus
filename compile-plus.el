@@ -54,11 +54,15 @@
   :local t
   :risky t)
 
+(defun compile-plus--providers-for-current-buffer ()
+  "Return list of providers for the current buffer."
+  (or compile-plus-override-providers
+      (alist-get major-mode compile-plus-providers-alist)))
+
 (defun compile-plus--build-future-history ()
   "Return a list of commands that is used as future history for `compile'."
-  (let ((provider-funcs (reverse
-                         (or compile-plus-override-providers
-                             (alist-get major-mode compile-plus-providers-alist))))
+  (let ((provider-funcs
+         (reverse (compile-plus--providers-for-current-buffer)))
         (result '()))
     (dolist (func provider-funcs)
       (with-demoted-errors "Error in a provider func: %S"
@@ -94,6 +98,20 @@ COMMAND is nil."
   (advice-remove 'compilation-read-command #'compile-plus--read-command)
   (when compile-plus-mode
     (advice-add 'compilation-read-command :override #'compile-plus--read-command)))
+
+(defun compile-plus-dape-command ()
+  "Build `dape-config' for thing at point."
+  (let ((provider (car (compile-plus--providers-for-current-buffer))))
+    (funcall provider t)))
+
+;;;###autoload
+(defun compile-plus-dape-at-point ()
+  "Call `dape' to run thing at point (test, main function etc)."
+  (interactive)
+  (let* ((project (project-current t))
+         (default-directory (if project (project-root project) default-directory))
+         (dape-command (compile-plus-dape-command)))
+    (call-interactively #'dape)))
 
 (provide 'compile-plus)
 ;;; compile-plus.el ends here

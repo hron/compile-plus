@@ -126,8 +126,9 @@ can be used for `compile' to run the file."
                 (:match "^test.*" @method-name)) @start @end)
         (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
-(defun compile-plus-python-ts-test-method ()
-  "Return command line to run a method of subclass of unittest.TestCase."
+(defun compile-plus-python-ts-test-method (&optional debug)
+  "Return command line to run a method of subclass of unittest.TestCase.
+If DEBUG is set to 't return a `dape-config' instead."
   (when-let* ((test-runner compile-plus-python-ts-test-runner)
               (queries (if (equal "pytest" test-runner)
                            '(compile-plus-python-ts--pytest-method-query
@@ -139,16 +140,25 @@ can be used for `compile' to run the file."
               (method-name (treesit-node-text (alist-get 'method-name captures)))
               (class-name (treesit-node-text (alist-get 'class-name captures)))
               (test-file (file-relative-name buffer-file-name default-directory))
-              (delimiter (if (equal "pytest" test-runner)
-                             " and "
-                           ".")))
-    (compile-plus--format-no-prop "%s -m %s %s -k '%s%s%s'"
-                                  compile-plus-python-ts-bin
-                                  test-runner
-                                  test-file
-                                  class-name
-                                  delimiter
-                                  method-name)))
+              (delimiter (if (equal "pytest" test-runner) " and " "."))
+              (runner-args (compile-plus--format-no-prop "%s -k '%s%s%s'"
+                                                         test-file
+                                                         class-name
+                                                         delimiter
+                                                         method-name)))
+    (if debug
+        `(debugpy-module
+          modes (python-mode python-ts-mode)
+          ensure (lambda (config)
+                   (dape-ensure-command config)
+                   (let ((python (dape-config-get config 'command)))
+                     (unless (zerop (process-file-shell-command
+                                     (format "%s -c \"import debugpy.adapter\"" python)))
+                       (user-error "%s module debugpy is not installed" python))))
+          command ,compile-plus-python-ts-bin
+          :module ,test-runner
+          :args ,runner-args)
+      (format "%s -m %s %s" compile-plus-python-ts-bin test-runner runner-args))))
 
 (defvar compile-plus-python-ts--test-file-query
   (treesit-query-compile

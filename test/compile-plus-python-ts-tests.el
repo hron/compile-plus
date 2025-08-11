@@ -43,6 +43,25 @@
        (equal (compile-plus-python-ts-test-method)
               "python3 -m unittest test_unittest.py -k 'TestStringMethods.test_upper'")))))
 
+(ert-deftest python-ts-unittest-method-debug ()
+  (let ((compile-plus-python-ts-test-runner "unittest"))
+    (with-sample-file "python-ts/test_unittest.py" #'python-ts-mode
+      (search-forward "def test_upper")
+      ;; (should (plistp (compile-plus-python-ts-test-method t)))
+      (should
+       (equal (compile-plus-python-ts-test-method t)
+              '(debugpy-module
+                modes (python-mode python-ts-mode)
+                ensure (lambda (config)
+                         (dape-ensure-command config)
+                         (let ((python (dape-config-get config 'command)))
+                           (unless (zerop (process-file-shell-command
+                                           (format "%s -c \"import debugpy.adapter\"" python)))
+                             (user-error "%s module debugpy is not installed" python))))
+                command "python3"
+                :module "unittest"
+                :args "test_unittest.py -k 'TestStringMethods.test_upper'"))))))
+
 (ert-deftest python-ts-unittest-method-with-point-at-beginning-of-the-line ()
   (let ((compile-plus-python-ts-test-runner "unittest"))
     (with-sample-file "python-ts/test_unittest.py" #'python-ts-mode
