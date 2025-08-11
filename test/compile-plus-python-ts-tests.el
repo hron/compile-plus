@@ -50,13 +50,6 @@
       (should
        (equal (compile-plus-python-ts-test-method t)
               '(debugpy-module
-                modes (python-mode python-ts-mode)
-                ensure (lambda (config)
-                         (dape-ensure-command config)
-                         (let ((python (dape-config-get config 'command)))
-                           (unless (zerop (process-file-shell-command
-                                           (format "%s -c \"import debugpy.adapter\"" python)))
-                             (user-error "%s module debugpy is not installed" python))))
                 command "python3"
                 :module "unittest"
                 :args "test_unittest.py -k 'TestStringMethods.test_upper'"))))))
