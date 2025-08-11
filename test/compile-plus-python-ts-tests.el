@@ -47,7 +47,6 @@
   (let ((compile-plus-python-ts-test-runner "unittest"))
     (with-sample-file "python-ts/test_unittest.py" #'python-ts-mode
       (search-forward "def test_upper")
-      ;; (should (plistp (compile-plus-python-ts-test-method t)))
       (should
        (equal (compile-plus-python-ts-test-method t)
               '(debugpy-module
