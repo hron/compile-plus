@@ -12,7 +12,10 @@
        "compile-plus-python-ts.el"
        "compile-plus-rust-ts.el")
 
+(source "gnu")
+
 (depends-on "emacs" "29.1")
+(depends-on "dape" "0.24.1")
 
 (eask-defcommand install-treesit-grammars
   "Install treesit grammars needed for the tests."

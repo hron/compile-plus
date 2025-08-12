@@ -128,7 +128,7 @@ can be used for `compile' to run the file."
 
 (defun compile-plus-python-ts-test-method (&optional debug)
   "Return command line to run a method of subclass of unittest.TestCase.
-If DEBUG is set to 't return a `dape-config' instead."
+If DEBUG is set to t return a `dape' config instead."
   (when-let* ((test-runner compile-plus-python-ts-test-runner)
               (queries (if (equal "pytest" test-runner)
                            '(compile-plus-python-ts--pytest-method-query

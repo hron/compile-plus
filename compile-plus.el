@@ -6,7 +6,7 @@
 ;; Maintainer: Aleksei Gusev <aleksei.gusev@gmail.com>
 ;; URL: https://github.com/hron/compile-plus.el
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "29.1") (dape "0.24.1"))
 ;; Keywords: convenience, compile, test
 ;; SPDX-License-Identifier: GPL
 ;;
@@ -19,6 +19,8 @@
 ;;; Code:
 
 (require 'compile)
+(require 'dape)
+
 (require 'compile-plus-rust-ts)
 (require 'compile-plus-python-ts)
 
@@ -53,7 +55,8 @@
 (defcustom compile-plus-compile-func #'project-compile
   "Function to use for starting compilation process.
 It should be aware of `compile-command' because the package sets it to
-describe how to run the thing at point.")
+describe how to run the thing at point."
+  :type 'function)
 
 (defun compile-plus-compile-command (&optional debug)
   "Build `compile-command' for the thing at point.
@@ -61,7 +64,7 @@ if DEBUG is set to t return `dape-command' instead."
   (catch 'found
     (dolist (func (compile-plus--providers-for-current-buffer))
       (with-demoted-errors "Error in a provider func: %S"
-        (when-let ((candidate-command (funcall func debug)))
+        (when-let* ((candidate-command (funcall func debug)))
           (throw 'found (if debug
                             candidate-command
                           (substring-no-properties candidate-command))))))))
@@ -79,13 +82,13 @@ if DEBUG is set to t return `dape-command' instead."
     (setq compile-command (or (compile-plus-compile-command) compile-command))
     (call-interactively compile-plus-compile-func)))
 
-;;;###autoload
 (defun compile-plus-dape-thing-at-point ()
   "Call `dape' to run thing at point (test, main function etc)."
   (interactive)
   (let* ((project (project-current t))
          (default-directory (if project (project-root project) default-directory))
          (dape-command (compile-plus-compile-command t)))
+    (ignore dape-command)
     (call-interactively #'dape)))
 
 (provide 'compile-plus)
