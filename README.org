@@ -1,8 +1,6 @@
 * How to reload the package in active Emacs session for testing
 
   #+begin_src emacs-lisp
-    (compile-plus-mode -1)
-
     (dolist (dir (list default-directory (expand-file-name "test" default-directory)))
       (push dir load-path))
 
@@ -17,12 +15,14 @@
             (unload-feature feat t)))
         (load-file file)))
 
-    (compile-plus-mode +1)
+    (setq compile-plus-compile-func #'init-project-compile)
+    (global-set-key (kbd "M-t") #'compile-plus-compile-thing-at-point)
+    (global-set-key (kbd "M-C-t") #'compile-plus-dape-thing-at-point)
     ;; (customize-group 'compile-plus)
   #+end_src
 
 #+RESULTS:
-: t
+: compile-plus-dape-thing-at-point
 
 * Future emacs-lisp-mode future history maybe:
 
