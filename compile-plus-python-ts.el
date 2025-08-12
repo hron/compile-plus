@@ -59,7 +59,7 @@ This function checks if the current buffer is a Python source file with
 defined __main__ and returns a string with the command line that
 can be used for `compile' to run the file.
 
-If DEBUG is 't then return `dape' configuration instead."
+If DEBUG is t then return `dape' configuration instead."
   (when-let* ((captures
                (treesit-query-capture 'python compile-plus-python-ts--main-query))
               (relative-buffer-path
@@ -90,7 +90,7 @@ If DEBUG is 't then return `dape' configuration instead."
 
 (defun compile-plus-python-ts-test-class (&optional debug)
   "Return command line to run a test class.
-If DEBUG is 't then return `dape' configuration instead."
+If DEBUG is t then return `dape' configuration instead."
   (when-let* ((test-runner compile-plus-python-ts-test-runner)
               (queries (if (equal "pytest" test-runner)
                            '(compile-plus-python-ts--pytest-class-query
@@ -174,7 +174,7 @@ If DEBUG is set to t return a `dape' config instead."
 
 (defun compile-plus-python-ts-test-file (&optional debug)
   "Return command line to run the current buffer as a test module.
-If DEBUG is 't then return `dape' configuration instead."
+If DEBUG is t then return `dape' configuration instead."
   (when (treesit-query-capture 'python compile-plus-python-ts--test-file-query)
     (let ((test-runner compile-plus-python-ts-test-runner)
           (test-file (file-relative-name buffer-file-name)))
@@ -199,7 +199,7 @@ If DEBUG is 't then return `dape' configuration instead."
 
 (defun compile-plus-python-ts-pytest-function (&optional debug)
   "Return command line to run the current function as pytest test.
-If DEBUG is 't then return `dape' configuration instead."
+If DEBUG is t then return `dape' configuration instead."
   (when-let* ((captures (treesit-query-capture
                          'python compile-plus-python-ts--pytest-function-query))
               (method-name (treesit-node-text (alist-get 'method-name captures) t))
