@@ -1,24 +1,28 @@
 * How to reload the package in active Emacs session for testing
 
   #+begin_src emacs-lisp
-    (dolist (dir (list default-directory (expand-file-name "test" default-directory)))
+    (defun compile-plus-full-reload ()
+      "Reload `compile-plus' package."
+      (interactive)
+      (dolist (dir (list default-directory (expand-file-name "test" default-directory)))
       (push dir load-path))
 
-    (when-let* ((buff (get-buffer "*Customize Group: Compile Plus*")))
-      (kill-buffer buff))
+      (when-let* ((buff (get-buffer "*Customize Group: Compile Plus*")))
+        (kill-buffer buff))
 
-    (let ((all-files (append (directory-files default-directory nil "\\.el$")
-                             '("test/compile-plus-test-helpers.el"))))
-      (dolist (file all-files)
-        (let ((feat (intern (file-name-base file))))
-          (when (featurep feat)
-            (unload-feature feat t)))
-        (load-file file)))
+      (let ((all-files (append (directory-files default-directory nil "\\.el$")
+                               '("test/compile-plus-test-helpers.el"))))
+        (dolist (file all-files)
+          (let ((feat (intern (file-name-base file))))
+            (when (featurep feat)
+              (unload-feature feat t)))
+          (load-file file)))
 
-    (setq compile-plus-compile-func #'init-project-compile)
-    (global-set-key (kbd "M-t") #'compile-plus-compile-thing-at-point)
-    (global-set-key (kbd "M-C-t") #'compile-plus-dape-thing-at-point)
-    ;; (customize-group 'compile-plus)
+      (setq compile-plus-compile-func #'init-project-compile)
+      (global-set-key (kbd "M-t") #'compile-plus-compile-thing-at-point)
+      (global-set-key (kbd "M-C-t") #'compile-plus-dape-thing-at-point))
+
+    (compile-plus-full-reload)
   #+end_src
 
 #+RESULTS:
