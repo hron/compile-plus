@@ -1,9 +1,11 @@
-pub fn sub(usize: a, usize: b) -> usize {
+pub fn sub(a: usize, b: usize) -> usize {
     a - b
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test_sub_foo() {
         assert_eq!(4, sub(6, 2));
