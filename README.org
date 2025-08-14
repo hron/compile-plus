@@ -18,7 +18,6 @@
               (unload-feature feat t)))
           (load-file file)))
 
-      (setq compile-plus-compile-func #'init-project-compile)
       (global-set-key (kbd "M-t") #'compile-plus-compile-thing-at-point)
       (global-set-key (kbd "M-C-t") #'compile-plus-dape-thing-at-point))
 

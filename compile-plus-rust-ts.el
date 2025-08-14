@@ -52,11 +52,10 @@
   "Find a test under point in `rust-ts-mode'."
   (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--test-query))
               (test-name (treesit-node-text (alist-get 'test_name captures) t)))
-    (compile-plus-rust-ts--build-command
-     "cargo test -p %s -- %s %s"
-     (compile-plus-rust-ts--package-name)
-     compile-plus-rust-ts-test-binary-args
-     test-name)))
+    (format "cargo test -p %s -- %s %s"
+            (compile-plus-rust-ts--package-name)
+            compile-plus-rust-ts-test-binary-args
+            test-name)))
 
 (defun compile-plus-rust-ts--package-name ()
   "Return cargo package name for current buffer by running `cargo pkgid`.
@@ -115,10 +114,10 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
   "Find the doctest at point in `rust-ts-mode'."
   (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--doctest-query))
               (test-name (treesit-node-text (alist-get 'doc_test_name captures) t)))
-    (compile-plus-rust-ts--build-command "cargo test -p %s --doc -- %s %s"
-                                         (compile-plus-rust-ts--package-name)
-                                         compile-plus-rust-ts-test-binary-args
-                                         test-name)))
+    (format "cargo test -p %s --doc -- %s %s"
+            (compile-plus-rust-ts--package-name)
+            compile-plus-rust-ts-test-binary-args
+            test-name)))
 
 (defvar compile-plus-rust-ts--test-mod-query
   (treesit-query-compile
@@ -138,10 +137,10 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 (defun compile-plus-rust-ts-test-mod ()
   "Build a command to test the current mod."
   (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
-    (compile-plus-rust-ts--build-command "cargo test -p %s -- %s %s"
-                                         (compile-plus-rust-ts--package-name)
-                                         compile-plus-rust-ts-test-binary-args
-                                         (file-name-base buffer-file-name))))
+    (format "cargo test -p %s -- %s %s"
+            (compile-plus-rust-ts--package-name)
+            compile-plus-rust-ts-test-binary-args
+            (file-name-base buffer-file-name))))
 
 (defvar compile-plus-rust-ts--run-query
   (treesit-query-compile
@@ -196,34 +195,21 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
   "Return command to run main function at point."
   (when (treesit-query-capture 'rust compile-plus-rust-ts--run-query)
     (string-trim
-     (compile-plus-rust-ts--build-command "cargo run -p %s %s--%s %s"
-                                          (compile-plus-rust-ts--package-name)
-                                          (compile-plus-rust-ts--run-features-flag)
-                                          (compile-plus-rust-ts--run-kind)
-                                          (compile-plus-rust-ts--run-name)))))
+     (format "cargo run -p %s %s--%s %s"
+             (compile-plus-rust-ts--package-name)
+             (compile-plus-rust-ts--run-features-flag)
+             (compile-plus-rust-ts--run-kind)
+             (compile-plus-rust-ts--run-name)))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-all ()
   "Build the command to run the whole project."
-  (compile-plus-rust-ts--build-command "cargo test"))
+  "cargo test")
 
-(defun compile-plus-rust-ts--build-command (string &rest objects)
-  "Change pwd so `cargo' works properly if needed.
-
-`cargo' command works great if it's executed from any directory down to
-the project root directory hierarchy, but only if the project root is
-the cargo project.  For other cases cd /cargo/project/root must be done.
-Thus, this function adds a prefix with cd ... to any cargo test commands
-if needed.
-
-STRING and OBJECTS are passed to `format'."
-  (let* ((cd-prefix (if (locate-dominating-file default-directory "Cargo.toml")
-                        ""
-                      (format "cd %s && "
-                              (string-remove-suffix
-                               "/" (file-relative-name (file-name-directory buffer-file-name))))))
-         (string  (concat cd-prefix string)))
-    (apply #'format (append (list string) objects))))
+;;;###autoload
+(defun compile-plus-rust-ts-default-directory ()
+  "Finds the project root -- dominating directory with Cargo.toml."
+  (locate-dominating-file default-directory "Cargo.toml"))
 
 (provide 'compile-plus-rust-ts)
 ;;; compile-plus-rust-ts.el ends here

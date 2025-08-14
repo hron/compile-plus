@@ -20,14 +20,6 @@
     (should (equal (compile-plus-rust-ts-test-at-point)
                    "cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"))))
 
-(ert-deftest rust-ts-chdir-if-outside ()
-  "Check the case when cargo project is not the project root."
-  (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
-    (let ((default-directory (expand-file-name "../../../.." (file-name-directory buffer-file-name))))
-      (search-forward "fn test_sub_foo")
-      (should (equal (compile-plus-rust-ts-test-at-point)
-                     "cd test/fixtures/rust-ts/src && cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo")))))
-
 (ert-deftest rust-ts-package-argument ()
   (with-sample-file "rust-ts/crates/multi/src/lib.rs" #'rust-ts-mode
     (search-forward "fn test_multi")
