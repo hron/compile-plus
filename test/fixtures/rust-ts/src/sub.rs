@@ -13,6 +13,9 @@ mod tests {
 
     #[test]
     fn test_sub_bar() {
+        let a = 4;
+        let b = 2;
         assert_eq!(0, sub(1, 1));
+        assert_eq!(2, sub(4, 2));
     }
 }

@@ -23,10 +23,16 @@
   :group 'compile-plus
   :prefix "compile-plus-rust-")
 
-(defcustom compile-plus-rust-ts-test-binary-args "--no-capture --include-ignored"
+(defcustom compile-plus-rust-test-binary-args "--no-capture --include-ignored"
   "Arguments for the test binary: cargo test -- ARGS."
   :tag "Rust test binary arguments"
   :type 'string
+  :group 'compile-plus-rust)
+
+(defcustom compile-plus-rust-debug-adapter 'codelldb
+  "Debug adapter to use to debug Rust."
+  :type 'symbol
+  :options '(codelldb lldb-dap)
   :group 'compile-plus-rust)
 
 (defvar compile-plus-rust-ts--test-query
@@ -49,12 +55,14 @@
 
 (push
  '(compile-plus-lldb-dap-rust
-   modes (rust-mode rust-ts-mode rustic-mode)
-   ensure dape-ensure-command
-   command "lldb-dap"
-   command-cwd dape-command-cwd
-   fn compile-plus-rust-ts-dape-config-program
-   :type "lldb-dap")
+   ,@(alist-get 'lldb-dap-rust dape-configs)
+   fn compile-plus-rust-ts-dape-config-program)
+ dape-configs)
+
+(push
+ `(compile-plus-codelldb-rust
+   ,@(alist-get 'codelldb-rust dape-configs)
+   fn compile-plus-rust-ts-dape-config-program)
  dape-configs)
 
 (defun compile-plus-rust-ts-dape-config-program (config)
@@ -62,13 +70,14 @@
   ;; `dape' runs this function twice: before and after compile. it
   ;; should act only after compile.
   (if (plist-get config 'compile-plus-rust-ts-compile-finished)
-      (setq config
-            (append config (compile-plus-rust-ts--detect-test-cmd-for-dape
-                            (plist-get config 'compile))))
+      (let ((test-program
+             (compile-plus-rust-ts--dape-test-cmd (plist-get config 'compile))))
+        (dolist (prop '(:program :args))
+          (plist-put config prop (plist-get test-program prop))))
     (plist-put config 'compile-plus-rust-ts-compile-finished t))
   config)
 
-(defun compile-plus-rust-ts--detect-test-cmd-for-dape (command)
+(defun compile-plus-rust-ts--dape-test-cmd (command)
   "Find test executable for the given COMMAND which is cargo test ..."
   (let* ((args (string-replace " -- " " --message-format=json -- " command))
          (args (string-remove-prefix "cargo " args))
@@ -91,6 +100,16 @@
          json-objs
          '())))))
 
+(defun compile-plus-rust-ts--build-dape-config (command)
+  "Build `dape-config' for COMMAND."
+  (let ((debug-adapter
+         (intern (concat "compile-plus-"
+                         (symbol-name compile-plus-rust-debug-adapter)
+                         "-rust"))))
+    `(,debug-adapter
+      compile ,command
+      command-cwd compile-plus-rust-ts-default-directory)))
+
 ;;;###autoload
 (defun compile-plus-rust-ts-test-at-point (&optional debug)
   "Find a test under point in `rust-ts-mode'.
@@ -103,14 +122,13 @@ If DEBUG is 't then return `dape' configuration instead."
       (let* ((cargo-test-command
               (format "cargo test --no-run -p %s -- %s %s"
                       cargo-package
-                      compile-plus-rust-ts-test-binary-args
+                      compile-plus-rust-test-binary-args
                       test-name)))
-        `(compile-plus-lldb-dap-rust compile ,cargo-test-command
-                                     command-cwd compile-plus-rust-ts-default-directory)))
+        (compile-plus-rust-ts--build-dape-config cargo-test-command)))
      (t
       (format "cargo test -p %s -- %s %s"
               cargo-package
-              compile-plus-rust-ts-test-binary-args
+              compile-plus-rust-test-binary-args
               test-name)))))
 
 (defun compile-plus-rust-ts--package-name ()
@@ -172,7 +190,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
               (test-name (treesit-node-text (alist-get 'doc_test_name captures) t)))
     (format "cargo test -p %s --doc -- %s %s"
             (compile-plus-rust-ts--package-name)
-            compile-plus-rust-ts-test-binary-args
+            compile-plus-rust-test-binary-args
             test-name)))
 
 (defvar compile-plus-rust-ts--test-mod-query
@@ -195,7 +213,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
   (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
     (format "cargo test -p %s -- %s %s"
             (compile-plus-rust-ts--package-name)
-            compile-plus-rust-ts-test-binary-args
+            compile-plus-rust-test-binary-args
             (file-name-base buffer-file-name))))
 
 (defvar compile-plus-rust-ts--run-query

@@ -20,6 +20,16 @@
     (should (equal (compile-plus-rust-ts-test-at-point)
                    "cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"))))
 
+(ert-deftest rust-ts-choose-debug-adapter ()
+  (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
+    (search-forward "fn test_sub_foo")
+    (pcase-let* ((compile-plus-rust-debug-adapter 'codelldb)
+                 (`(,debug-adapter) (compile-plus-rust-ts-test-at-point t)))
+      (should (equal 'compile-plus-codelldb-rust debug-adapter)))
+    (pcase-let* ((compile-plus-rust-debug-adapter 'lldb-dap)
+                 (`(,debug-adapter) (compile-plus-rust-ts-test-at-point t)))
+      (should (equal 'compile-plus-lldb-dap-rust debug-adapter)))))
+
 (ert-deftest rust-ts-package-argument ()
   (with-sample-file "rust-ts/crates/multi/src/lib.rs" #'rust-ts-mode
     (search-forward "fn test_multi")
