@@ -7,7 +7,7 @@
 
 ;;; Code:
 
-(require 'compile-plus)
+(require 'compile-plus-rust-ts)
 (require 'ert)
 
 (unless (macrop 'with-sample-file)
@@ -79,3 +79,20 @@
     (search-forward "fn main")
     (should (equal (compile-plus-rust-ts-run)
                    "cargo run -p rust-ts --example hello_world"))))
+
+(ert-deftest rust-ts-dape-config-program ()
+  (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
+    (search-forward "fn test_sub_foo")
+    (let* ((cmd "cargo test --no-run -p rust-ts -- --no-capture --include-ignored test_sub_foo")
+           (config `(compile ,cmd)))
+      ;; First call should add the flag because `dape' calls fn two
+      ;; times: before and after compilation
+      (setq config (compile-plus-rust-ts-dape-config-program (copy-tree config)))
+      (should (plist-get config 'compile-plus-rust-ts-compile-finished))
+      ;; Second call should add all the missing attributes to make
+      ;; dape-config be able to run the test
+      (setq config (compile-plus-rust-ts-dape-config-program (copy-tree config)))
+      (should (string-match "target/debug/deps/rust_ts-"
+                            (plist-get config :program)))
+      (should (equal ["--no-capture" "--include-ignored" "test_sub_foo"]
+                     (plist-get config :args))))))
