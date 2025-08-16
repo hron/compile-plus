@@ -46,12 +46,12 @@ DEBUG has no meaning."
 
 (ert-deftest compile-command-rescue-errors ()
   (with-temp-buffer
-    (let ((debug-on-error nil)
+    (let ((compile-command nil)
+          (debug-on-error nil)
           (compile-plus-providers-alist
            '((text-mode . (error-provider)))))
       (text-mode)
-      (should (equal (compile-plus-compile-command)
-                     '())))))
+      (should (equal (compile-plus-compile-command) '())))))
 
 (ert-deftest dape-command-for-major-mode ()
   (with-temp-buffer
@@ -64,7 +64,8 @@ DEBUG has no meaning."
 
 (ert-deftest dape-command-rescue-errors ()
   (with-temp-buffer
-    (let ((debug-on-error nil)
+    (let ((compile-command nil)
+          (debug-on-error nil)
           (compile-plus-providers-alist
            '((text-mode . (error-provider)))))
       (text-mode)

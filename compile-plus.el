@@ -41,6 +41,11 @@
                        compile-plus-python-ts-main)))
   "Contains functions to provide candidates per mode.")
 
+(defvar compile-plus-default-directory-alist
+  '((rust-mode . compile-plus-rust-ts-default-directory)
+    (rust-ts-mode . compile-plus-rust-ts-default-directory)
+    (rustic-mode . compile-plus-rust-ts-default-directory)))
+
 (defgroup compile-plus nil
   "Run \\[compile] based on the buffer content."
   :link '(url-link :tag "Website" "https://github.com/hron/compile-plus")
@@ -52,41 +57,44 @@
   "Return list of providers for the current buffer."
   (alist-get major-mode compile-plus-providers-alist))
 
-(defcustom compile-plus-compile-func #'project-compile
-  "Function to use for starting compilation process.
-It should be aware of `compile-command' because the package sets it to
-describe how to run the thing at point."
-  :type 'function)
-
 (defun compile-plus-compile-command (&optional debug)
   "Build `compile-command' for the thing at point.
 if DEBUG is set to t return `dape-command' instead."
-  (catch 'found
-    (dolist (func (compile-plus--providers-for-current-buffer))
-      (with-demoted-errors "Error in a provider func: %S"
-        (when-let* ((candidate-command (funcall func debug)))
-          (throw 'found (if debug
-                            candidate-command
-                          (substring-no-properties candidate-command))))))))
+  (or (catch 'found
+        (dolist (func (compile-plus--providers-for-current-buffer))
+          (with-demoted-errors "Error in a provider func: %S"
+            (when-let* ((candidate-command (funcall func debug)))
+              (throw 'found candidate-command)))))
+      compile-command))
 
 (defun compile-plus-dape-command ()
   "Build `dape-command' for the thing at point."
   (compile-plus-compile-command t))
 
+(defun compile-plus-default-directory ()
+  "Return the directory suitable for compile-plus command."
+  (let ((fn (alist-get major-mode compile-plus-default-directory-alist)))
+    (cond
+     ((fboundp fn)
+      (funcall fn))
+     ((project-current nil)
+      (project-root (project-current nil)))
+     (t
+      default-directory))))
+
 ;;;###autoload
 (defun compile-plus-compile-thing-at-point ()
   "Call `compile' to run thing at point (test, main function etc)."
   (interactive)
-  (let* ((project (project-current t))
-         (default-directory (if project (project-root project) default-directory)))
-    (setq compile-command (or (compile-plus-compile-command) compile-command))
-    (call-interactively compile-plus-compile-func)))
+  (let ((default-directory (compile-plus-default-directory)))
+    (setq compile-command (compile-plus-compile-command))
+    (call-interactively #'compile)))
 
+;;;###autoload
 (defun compile-plus-dape-thing-at-point ()
   "Call `dape' to run thing at point (test, main function etc)."
   (interactive)
-  (let* ((project (project-current t))
-         (default-directory (if project (project-root project) default-directory))
+  (let* ((default-directory (compile-plus-default-directory))
          (dape-command (compile-plus-compile-command t)))
     (ignore dape-command)
     (call-interactively #'dape)))
