@@ -102,34 +102,27 @@
 
 (defun compile-plus-rust-ts--build-dape-config (command)
   "Build `dape-config' for COMMAND."
-  (let ((debug-adapter
-         (intern (concat "compile-plus-"
-                         (symbol-name compile-plus-rust-debug-adapter)
-                         "-rust"))))
+  (let* ((debug-adapter (symbol-name compile-plus-rust-debug-adapter))
+         (debug-adapter (concat "compile-plus-" debug-adapter "-rust"))
+         (debug-adapter (intern debug-adapter))
+         (command (string-replace " -- " (concat " --no-run -- ") command)))
     `(,debug-adapter
       compile ,command
       command-cwd compile-plus-rust-ts-default-directory)))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-at-point (&optional debug)
-  "Find a test under point in `rust-ts-mode'.
-If DEBUG is 't then return `dape' configuration instead."
-  (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--test-query))
-              (test-name (treesit-node-text (alist-get 'test_name captures) t))
-              (cargo-package (compile-plus-rust-ts--package-name)))
-    (cond
-     (debug
-      (let* ((cargo-test-command
-              (format "cargo test --no-run -p %s -- %s %s"
-                      cargo-package
-                      compile-plus-rust-test-binary-args
-                      test-name)))
-        (compile-plus-rust-ts--build-dape-config cargo-test-command)))
-     (t
-      (format "cargo test -p %s -- %s %s"
-              cargo-package
-              compile-plus-rust-test-binary-args
-              test-name)))))
+  "Build a command line to run the test at point using cargo test.
+If DEBUG is non-nil, then return a `dape' configuration instead."
+  (when-let*
+      ((captures (treesit-query-capture 'rust compile-plus-rust-ts--test-query))
+       (test-name (treesit-node-text (alist-get 'test_name captures) t))
+       (cargo-package (compile-plus-rust-ts--package-name))
+       (command (format "cargo test -p %s -- %s %s"
+                        cargo-package
+                        compile-plus-rust-test-binary-args
+                        test-name)))
+    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
 
 (defun compile-plus-rust-ts--package-name ()
   "Return cargo package name for current buffer by running `cargo pkgid`.

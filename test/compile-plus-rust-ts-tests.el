@@ -18,7 +18,11 @@
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
     (search-forward "fn test_sub_foo")
     (should (equal (compile-plus-rust-ts-test-at-point)
-                   "cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"))))
+                   "cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"))
+    (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-at-point t)))
+      (should (equal debug-adapter 'compile-plus-codelldb-rust))
+      (should (equal (plist-get dape-config 'compile)
+                     "cargo test -p rust-ts --no-run -- --no-capture --include-ignored test_sub_foo")))))
 
 (ert-deftest rust-ts-choose-debug-adapter ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
