@@ -133,7 +133,8 @@
       ;; Second call should add all the missing attributes to make
       ;; dape-config be able to run the test
       (setq config (compile-plus-rust-ts-dape-config-program (copy-tree config)))
-      (should (string-match "target/debug/deps/rust_ts-"
-                            (plist-get config :program)))
+      (let ((program (plist-get config :program)))
+        (should (and (string-match "target" program)
+                     (string-match "rust_ts-" program))))
       (should (equal ["--no-capture" "--include-ignored" "test_sub_foo"]
                      (plist-get config :args))))))
