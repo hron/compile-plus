@@ -210,12 +210,12 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
 (defun compile-plus-rust-ts-test-mod (&optional debug)
   "Build a command to test the current mod.
 If DEBUG is non-nil, then return a `dape' configuration instead."
-  (when-let* ((_ (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query))
-              (command (format "cargo test -p %s -- %s %s"
-                               (compile-plus-rust-ts--package-name)
-                               compile-plus-rust-test-binary-args
-                               (file-name-base buffer-file-name))))
-    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
+  (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
+    (let ((command (format "cargo test -p %s -- %s %s"
+                           (compile-plus-rust-ts--package-name)
+                           compile-plus-rust-test-binary-args
+                           (file-name-base buffer-file-name))))
+      (if debug (compile-plus-rust-ts--build-dape-config command) command))))
 
 (defvar compile-plus-rust-ts--run-query
   (treesit-query-compile
@@ -289,14 +289,14 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
 (defun compile-plus-rust-ts-run (&optional debug)
   "Return command to run main function at point.
 If DEBUG is non-nil, then return a `dape' configuration instead."
-  (when-let* ((_ (treesit-query-capture 'rust compile-plus-rust-ts--run-query))
-              (command
-               (string-trim (format "cargo run -p %s %s--%s %s"
-                                    (compile-plus-rust-ts--package-name)
-                                    (compile-plus-rust-ts--run-features-flag)
-                                    (compile-plus-rust-ts--run-kind)
-                                    (compile-plus-rust-ts--run-name)))))
-    (if debug (compile-plus-rust-ts--build-dape-config-for-run command) command)))
+  (when (treesit-query-capture 'rust compile-plus-rust-ts--run-query)
+    (let ((command
+           (string-trim (format "cargo run -p %s %s--%s %s"
+                                (compile-plus-rust-ts--package-name)
+                                (compile-plus-rust-ts--run-features-flag)
+                                (compile-plus-rust-ts--run-kind)
+                                (compile-plus-rust-ts--run-name)))))
+      (if debug (compile-plus-rust-ts--build-dape-config-for-run command) command))))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-all (&optional debug)
