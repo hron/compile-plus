@@ -14,6 +14,7 @@
 ;;; Code:
 
 (require 'compile-plus-helpers)
+(require 'dape)
 
 (defgroup compile-plus-rust nil
   "Rust settings of `compile-plus' package."
@@ -60,7 +61,7 @@
  dape-configs)
 
 (push
- `(compile-plus-codelldb-rust
+ '(compile-plus-codelldb-rust
    ,@(alist-get 'codelldb-rust dape-configs)
    fn compile-plus-rust-ts-dape-config-program)
  dape-configs)
@@ -105,7 +106,9 @@
   (let* ((debug-adapter (symbol-name compile-plus-rust-debug-adapter))
          (debug-adapter (concat "compile-plus-" debug-adapter "-rust"))
          (debug-adapter (intern debug-adapter))
-         (command (string-replace " -- " (concat " --no-run -- ") command)))
+         (command (if (string-match " -- " command)
+                      (string-replace " -- " (concat " --no-run -- ") command)
+                    (concat command " --no-run"))))
     `(,debug-adapter
       compile ,command
       command-cwd compile-plus-rust-ts-default-directory)))
@@ -178,13 +181,16 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 
 ;;;###autoload
 (defun compile-plus-rust-ts-doctest-at-point (&optional debug)
-  "Find the doctest at point in `rust-ts-mode'."
-  (when-let* ((captures (treesit-query-capture 'rust compile-plus-rust-ts--doctest-query))
-              (test-name (treesit-node-text (alist-get 'doc_test_name captures) t)))
-    (format "cargo test -p %s --doc -- %s %s"
-            (compile-plus-rust-ts--package-name)
-            compile-plus-rust-test-binary-args
-            test-name)))
+  "Find the doctest at point in `rust-ts-mode'.
+If DEBUG is non-nil, then return a `dape' configuration instead."
+  (when-let*
+      ((captures (treesit-query-capture 'rust compile-plus-rust-ts--doctest-query))
+       (test-name (treesit-node-text (alist-get 'doc_test_name captures) t))
+       (command (format "cargo test -p %s --doc -- %s %s"
+                        (compile-plus-rust-ts--package-name)
+                        compile-plus-rust-test-binary-args
+                        test-name)))
+    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
 
 (defvar compile-plus-rust-ts--test-mod-query
   (treesit-query-compile
@@ -202,12 +208,14 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-mod (&optional debug)
-  "Build a command to test the current mod."
-  (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
-    (format "cargo test -p %s -- %s %s"
-            (compile-plus-rust-ts--package-name)
-            compile-plus-rust-test-binary-args
-            (file-name-base buffer-file-name))))
+  "Build a command to test the current mod.
+If DEBUG is non-nil, then return a `dape' configuration instead."
+  (when-let* ((_ (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query))
+              (command (format "cargo test -p %s -- %s %s"
+                               (compile-plus-rust-ts--package-name)
+                               compile-plus-rust-test-binary-args
+                               (file-name-base buffer-file-name))))
+    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
 
 (defvar compile-plus-rust-ts--run-query
   (treesit-query-compile
@@ -225,7 +233,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
 (defun compile-plus-rust-ts--run-name ()
   "Return name for current bin/example of the cargo package."
   (if (string-suffix-p "src/main.rs" buffer-file-name)
-      ""
+      (compile-plus-rust-ts--package-name)
     (gethash "name" (compile-plus-rust-ts--cargo-target))))
 
 (defun compile-plus-rust-ts--cargo-target ()
@@ -257,21 +265,45 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
       (concat "--features " (string-join features ",") " ")
     ""))
 
+(defun compile-plus-rust-ts--build-dape-config-for-run (command)
+  "Build `dape-config' for COMMAND."
+  (pcase-let*
+      ((debug-adapter
+        (if (equal 'codelldb compile-plus-rust-debug-adapter)
+            'codelldb-rust
+          'lldb-dap))
+       (`(,build-command ,args) (string-split command " -- "))
+       (build-command (string-trim (string-replace "cargo run" "cargo build" build-command)))
+       (args (if (stringp args) (vector (string-split args)) []))
+       (program (file-name-concat (compile-plus-rust-ts-default-directory)
+                                  "target"
+                                  "debug"
+                                  (compile-plus-rust-ts--package-name))))
+    `(,debug-adapter
+      compile ,build-command
+      command-cwd compile-plus-rust-ts-default-directory
+      :program ,program
+      :args ,args)))
+
 ;;;###autoload
 (defun compile-plus-rust-ts-run (&optional debug)
-  "Return command to run main function at point."
-  (when (treesit-query-capture 'rust compile-plus-rust-ts--run-query)
-    (string-trim
-     (format "cargo run -p %s %s--%s %s"
-             (compile-plus-rust-ts--package-name)
-             (compile-plus-rust-ts--run-features-flag)
-             (compile-plus-rust-ts--run-kind)
-             (compile-plus-rust-ts--run-name)))))
+  "Return command to run main function at point.
+If DEBUG is non-nil, then return a `dape' configuration instead."
+  (when-let* ((_ (treesit-query-capture 'rust compile-plus-rust-ts--run-query))
+              (command
+               (string-trim (format "cargo run -p %s %s--%s %s"
+                                    (compile-plus-rust-ts--package-name)
+                                    (compile-plus-rust-ts--run-features-flag)
+                                    (compile-plus-rust-ts--run-kind)
+                                    (compile-plus-rust-ts--run-name)))))
+    (if debug (compile-plus-rust-ts--build-dape-config-for-run command) command)))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-all (&optional debug)
-  "Build the command to run the whole project."
-  "cargo test")
+  "Build the command to run the whole project.
+If DEBUG is non-nil, then return a `dape' configuration instead."
+  (let ((command "cargo test"))
+    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-default-directory ()
