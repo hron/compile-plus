@@ -307,7 +307,7 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
 
 ;;;###autoload
 (defun compile-plus-rust-ts-default-directory ()
-  "Finds the project root -- dominating directory with Cargo.toml."
+  "Find the project root -- dominating directory with Cargo.toml."
   (locate-dominating-file default-directory "Cargo.toml"))
 
 (provide 'compile-plus-rust-ts)
