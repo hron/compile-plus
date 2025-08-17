@@ -100,7 +100,8 @@
     (pcase-let* ((`(,debug-adapter . ,dape-config) (rude-rust-ts-run t)))
       (should (equal debug-adapter 'codelldb-rust))
       (should (equal (plist-get dape-config 'compile)
-                     "cargo build -p rust-ts --example hello_world")))))
+                     "cargo build -p rust-ts --example hello_world"))
+      (should (string-match "hello_world" (plist-get dape-config :program))))))
 
 (ert-deftest rust-ts-package-name ()
   (should (equal
