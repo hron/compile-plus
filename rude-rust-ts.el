@@ -72,13 +72,17 @@
     (plist-put config 'rude-rust-ts-compile-finished t))
   config)
 
+(defun rude-rust-ts--extact-arg-value (command arg)
+  "Extract the value of ARG in COMMAND.  Return nil if not found."
+  (and (string-match (concat "-" arg " \\([^ ]+\\)") command)
+       (match-string 1 command)))
+
 (defun rude-rust-ts--dape-test-cmd (command)
   "Find test executable for the given COMMAND which is cargo test ..."
   (let* ((args (concat command " --message-format=json"))
          (args (string-remove-prefix "cargo " args))
          (args (string-split args " "))
-         (cargo-package (and (string-match "-p \\([^ ]+\\)" command)
-                             (match-string 1 command))))
+         (cargo-package (rude-rust-ts--extact-arg-value command "p")))
     (with-temp-buffer
       (apply 'call-process "cargo" nil '(t nil) nil args)
       (let ((json-objs (seq-map (lambda (string)
@@ -274,10 +278,14 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
        (`(,build-command ,args) (string-split command " -- "))
        (build-command (string-trim (string-replace "cargo run" "cargo build" build-command)))
        (args (if (stringp args) (vector (string-split args)) []))
+       (example-arg (rude-rust-ts--extact-arg-value command "example"))
+       (binary-name (if example-arg
+                        (file-name-concat "examples" example-arg)
+                      (rude-rust-ts--package-name)))
        (program (file-name-concat (rude-rust-ts-default-directory)
                                   "target"
                                   "debug"
-                                  (rude-rust-ts--package-name))))
+                                  binary-name)))
     `(,debug-adapter
       compile ,build-command
       command-cwd rude-rust-ts-default-directory
