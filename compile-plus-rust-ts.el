@@ -67,20 +67,17 @@
   ;; `dape' runs this function twice: before and after compile. it
   ;; should act only after compile.
   (if (plist-get config 'compile-plus-rust-ts-compile-finished)
-      (let ((test-program
-             (compile-plus-rust-ts--dape-test-cmd (plist-get config 'compile))))
-        (dolist (prop '(:program :args))
-          (plist-put config prop (plist-get test-program prop))))
+      (let ((executable (compile-plus-rust-ts--dape-test-cmd (plist-get config 'compile))))
+        (plist-put config :program executable))
     (plist-put config 'compile-plus-rust-ts-compile-finished t))
   config)
 
 (defun compile-plus-rust-ts--dape-test-cmd (command)
   "Find test executable for the given COMMAND which is cargo test ..."
-  (let* ((args (string-replace " -- " " --message-format=json -- " command))
+  (let* ((args (concat command " --message-format=json"))
          (args (string-remove-prefix "cargo " args))
          (args (string-split args " "))
-         (test-harness-args (apply #'vector (string-split (cadr (string-split command " -- ")) " ")))
-         (cargo-package (and (string-match "-p \\([^ ]*\\) " command)
+         (cargo-package (and (string-match "-p \\([^ ]+\\)" command)
                              (match-string 1 command))))
     (with-temp-buffer
       (apply 'call-process "cargo" nil '(t nil) nil args)
@@ -92,7 +89,7 @@
            (or (when-let* ((target (gethash "target" json))
                            (target-name (gethash "name" target)))
                  (when (equal target-name cargo-package)
-                   `(:program ,(gethash "executable" json) :args ,test-harness-args)))
+                   (gethash "executable" json)))
                test-cmd))
          json-objs
          '())))))
@@ -106,13 +103,14 @@
 
 (defun compile-plus-rust-ts--build-dape-config (command)
   "Build `dape-config' for COMMAND."
-  (let ((debug-adapter (compile-plus-rust-ts--dape-debug-adapter))
-        (command (if (string-match " -- " command)
-                     (string-replace " -- " (concat " --no-run -- ") command)
-                   (concat command " --no-run"))))
+  (pcase-let* ((debug-adapter (compile-plus-rust-ts--dape-debug-adapter))
+               (`(,command ,args) (string-split command " -- "))
+               (command (concat command " --no-run"))
+               (args (apply #'vector (string-split (or args "") " "))))
     `(,debug-adapter
       compile ,command
-      command-cwd compile-plus-rust-ts-default-directory)))
+      command-cwd compile-plus-rust-ts-default-directory
+      :args ,args)))
 
 ;;;###autoload
 (defun compile-plus-rust-ts-test-at-point (&optional debug)

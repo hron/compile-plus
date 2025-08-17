@@ -30,7 +30,9 @@
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-at-point t)))
       (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
-                     "cargo test -p rust-ts --no-run -- --no-capture --include-ignored test_sub_foo")))))
+                     "cargo test -p rust-ts --no-run"))
+      (should (equal (plist-get dape-config :args)
+                     ["--no-capture" "--include-ignored" "test_sub_foo"])))))
 
 (ert-deftest rust-ts-test-at-point-package-argument ()
   (with-sample-file "rust-ts/crates/multi/src/lib.rs" #'rust-ts-mode
@@ -40,7 +42,9 @@
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-at-point t)))
       (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
-                     "cargo test -p multi --no-run -- --no-capture --include-ignored test_multi")))))
+                     "cargo test -p multi --no-run"))
+      (should (equal (plist-get dape-config :args)
+                     ["--no-capture" "--include-ignored" "test_multi"])))))
 
 (ert-deftest rust-ts-doctest-at-point ()
   (with-sample-file "rust-ts/src/add.rs" #'rust-ts-mode
@@ -50,7 +54,9 @@
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-doctest-at-point t)))
       (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
-                     "cargo test -p rust-ts --doc --no-run -- --no-capture --include-ignored add")))))
+                     "cargo test -p rust-ts --doc --no-run"))
+      (should (equal (plist-get dape-config :args)
+                     ["--no-capture" "--include-ignored" "add"])))))
 
 (ert-deftest rust-ts-test-mod ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
@@ -60,7 +66,9 @@
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-mod t)))
       (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
-                     "cargo test -p rust-ts --no-run -- --no-capture --include-ignored sub")))))
+                     "cargo test -p rust-ts --no-run"))
+      (should (equal (plist-get dape-config :args)
+                     ["--no-capture" "--include-ignored" "sub"])))))
 
 (ert-deftest rust-ts-main ()
   (with-sample-file "rust-ts/src/main.rs" #'rust-ts-mode
@@ -132,7 +140,7 @@
 (ert-deftest rust-ts-dape-config-program ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
     (search-forward "fn test_sub_foo")
-    (let* ((cmd "cargo test --no-run -p rust-ts -- --no-capture --include-ignored test_sub_foo")
+    (let* ((cmd "cargo test --no-run -p rust-ts")
            (config `(compile ,cmd)))
       ;; First call should add the flag because `dape' calls fn two
       ;; times: before and after compilation
@@ -143,6 +151,4 @@
       (setq config (compile-plus-rust-ts-dape-config-program (copy-tree config)))
       (let ((program (plist-get config :program)))
         (should (and (string-match "target" program)
-                     (string-match "rust_ts-" program))))
-      (should (equal ["--no-capture" "--include-ignored" "test_sub_foo"]
-                     (plist-get config :args))))))
+                     (string-match "rust_ts-" program)))))))
