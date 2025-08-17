@@ -1,4 +1,4 @@
-;;; compile-plus-helpers.el --- Run M-x `compile' based on buffer content  -*- lexical-binding: t; -*-
+;;; rude-helpers.el --- Run M-x `compile' based on buffer content  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2025  Aleksei Gusev
 ;;
@@ -15,7 +15,7 @@
 
 (require 'treesit)
 
-(defun compile-plus-helpers--point-between-nodes-p (beg end)
+(defun rude-helpers--point-between-nodes-p (beg end)
   "Detect if the point is between BEG and END nodes.
 Use end of the line instead of point if the point is at the beginning of
 the line the following char is a space."
@@ -26,7 +26,7 @@ the line the following char is a space."
     (and (<= (treesit-node-start beg) p)
          (>= (treesit-node-end end) p))))
 
-(defun compile-plus-treesit-query-capture
+(defun rude-treesit-query-capture
     (node queries &optional beg end node-only)
   "Run `treesit-query-capture' for each of QUERIES and combine the results.
 NODE BEG END NODE-ONLY GROUPED are passed through."
@@ -40,5 +40,5 @@ NODE BEG END NODE-ONLY GROUPED are passed through."
    queries
    '()))
 
-(provide 'compile-plus-helpers)
-;;; compile-plus-helpers.el ends here
+(provide 'rude-helpers)
+;;; rude-helpers.el ends here

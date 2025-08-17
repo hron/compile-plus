@@ -1,8 +1,8 @@
 * How to reload the package in active Emacs session for testing
 
   #+begin_src emacs-lisp
-    (defun compile-plus-full-reload ()
-      "Reload `compile-plus' package."
+    (defun rude-full-reload ()
+      "Reload `rude' package."
       (interactive)
       (dolist (dir (list default-directory (expand-file-name "test" default-directory)))
       (push dir load-path))
@@ -11,26 +11,26 @@
         (kill-buffer buff))
 
       (let ((all-files (append (directory-files default-directory nil "\\.el$")
-                               '("test/compile-plus-test-helpers.el"))))
+                               '("test/rude-test-helpers.el"))))
         (dolist (file all-files)
           (let ((feat (intern (file-name-base file))))
             (when (featurep feat)
               (unload-feature feat t)))
           (load-file file)))
 
-      (global-set-key (kbd "M-t") #'compile-plus-compile-thing-at-point)
-      (global-set-key (kbd "M-C-t") #'compile-plus-dape-thing-at-point))
+      (global-set-key (kbd "M-t") #'rude-compile-thing-at-point)
+      (global-set-key (kbd "M-C-t") #'rude-dape-thing-at-point))
 
-    (compile-plus-full-reload)
+    (rude-full-reload)
   #+end_src
 
 #+RESULTS:
-: compile-plus-dape-thing-at-point
+: rude-dape-thing-at-point
 
 * Future emacs-lisp-mode future history maybe:
 
   #+begin_src emacs-lisp
-(with-current-buffer (get-buffer "compile-plus-rust-ts-tests.el")
+(with-current-buffer (get-buffer "rude-rust-ts-tests.el")
   (save-excursion
     (goto-char (pos-eol))
     (search-backward-regexp "ert-deftest \\([^ ]+\\)")

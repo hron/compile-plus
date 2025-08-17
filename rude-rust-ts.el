@@ -1,4 +1,4 @@
-;;; compile-plus-rust-ts.el --- Runnables for rust-ts-mode -*- lexical-binding: t; -*-
+;;; rude-rust-ts.el --- Runnables for rust-ts-mode -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2025  Aleksei Gusev
 ;;
@@ -13,30 +13,30 @@
 ;;
 ;;; Code:
 
-(require 'compile-plus-helpers)
+(require 'rude-helpers)
 (require 'dape)
 
-(defgroup compile-plus-rust nil
-  "Rust settings of `compile-plus' package."
+(defgroup rude-rust nil
+  "Rust settings of `rude' package."
   :tag "Rust"
-  :link '(url-link :tag "Website" "https://github.com/hron/compile-plus")
-  :link '(emacs-library-link :tag "Library Source" "compile-plus-rust-ts.el")
-  :group 'compile-plus
-  :prefix "compile-plus-rust-")
+  :link '(url-link :tag "Website" "https://github.com/hron/rude")
+  :link '(emacs-library-link :tag "Library Source" "rude-rust-ts.el")
+  :group 'rude
+  :prefix "rude-rust-")
 
-(defcustom compile-plus-rust-test-binary-args "--no-capture --include-ignored"
+(defcustom rude-rust-test-binary-args "--no-capture --include-ignored"
   "Arguments for the test binary: cargo test -- ARGS."
   :tag "Rust test binary arguments"
   :type 'string
-  :group 'compile-plus-rust)
+  :group 'rude-rust)
 
-(defcustom compile-plus-rust-debug-adapter 'codelldb
+(defcustom rude-rust-debug-adapter 'codelldb
   "Debug adapter to use to debug Rust."
   :type 'symbol
   :options '(codelldb lldb)
-  :group 'compile-plus-rust)
+  :group 'rude-rust)
 
-(defvar compile-plus-rust-ts--test-query
+(defvar rude-rust-ts--test-query
   (treesit-query-compile
    'rust
    '(((attribute_item
@@ -52,27 +52,27 @@
        (function_item
         name: (_)  @test_name
         body: _) @end
-       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
+       (:pred rude-helpers--point-between-nodes-p @start @end)))))
 
 (pcase-dolist (`(,key ,dape-key) '((lldb lldb-dap) (codelldb codelldb-rust)))
   (push
-   (let* ((key (intern (concat "compile-plus-rust-" (symbol-name key))))
+   (let* ((key (intern (concat "rude-rust-" (symbol-name key))))
           (base-config (alist-get dape-key dape-configs))
           (base-config (map-delete base-config :program)))
-     `(,key fn compile-plus-rust-ts-dape-config-program ,@base-config))
+     `(,key fn rude-rust-ts-dape-config-program ,@base-config))
    dape-configs))
 
-(defun compile-plus-rust-ts-dape-config-program (config)
+(defun rude-rust-ts-dape-config-program (config)
   "Replace :program in CONFIG with the test executable."
   ;; `dape' runs this function twice: before and after compile. it
   ;; should act only after compile.
-  (if (plist-get config 'compile-plus-rust-ts-compile-finished)
-      (let ((executable (compile-plus-rust-ts--dape-test-cmd (plist-get config 'compile))))
+  (if (plist-get config 'rude-rust-ts-compile-finished)
+      (let ((executable (rude-rust-ts--dape-test-cmd (plist-get config 'compile))))
         (plist-put config :program executable))
-    (plist-put config 'compile-plus-rust-ts-compile-finished t))
+    (plist-put config 'rude-rust-ts-compile-finished t))
   config)
 
-(defun compile-plus-rust-ts--dape-test-cmd (command)
+(defun rude-rust-ts--dape-test-cmd (command)
   "Find test executable for the given COMMAND which is cargo test ..."
   (let* ((args (concat command " --message-format=json"))
          (args (string-remove-prefix "cargo " args))
@@ -94,46 +94,46 @@
          json-objs
          '())))))
 
-(defun compile-plus-rust-ts--dape-debug-adapter ()
+(defun rude-rust-ts--dape-debug-adapter ()
   "Return a symbol to be used as a key for `dape-configs'."
-  (let* ((debug-adapter (symbol-name compile-plus-rust-debug-adapter))
-         (debug-adapter (concat "compile-plus-rust-" debug-adapter))
+  (let* ((debug-adapter (symbol-name rude-rust-debug-adapter))
+         (debug-adapter (concat "rude-rust-" debug-adapter))
          (debug-adapter (intern debug-adapter)))
     debug-adapter))
 
-(defun compile-plus-rust-ts--build-dape-config (command)
+(defun rude-rust-ts--build-dape-config (command)
   "Build `dape-config' for COMMAND."
-  (pcase-let* ((debug-adapter (compile-plus-rust-ts--dape-debug-adapter))
+  (pcase-let* ((debug-adapter (rude-rust-ts--dape-debug-adapter))
                (`(,command ,args) (string-split command " -- "))
                (command (concat command " --no-run"))
                (args (apply #'vector (string-split (or args "") " "))))
     `(,debug-adapter
       compile ,command
-      command-cwd compile-plus-rust-ts-default-directory
+      command-cwd rude-rust-ts-default-directory
       :args ,args)))
 
 ;;;###autoload
-(defun compile-plus-rust-ts-test-at-point (&optional debug)
+(defun rude-rust-ts-test-at-point (&optional debug)
   "Build a command line to run the test at point using cargo test.
 If DEBUG is non-nil, then return a `dape' configuration instead."
   (when-let*
-      ((captures (treesit-query-capture 'rust compile-plus-rust-ts--test-query))
+      ((captures (treesit-query-capture 'rust rude-rust-ts--test-query))
        (test-name (treesit-node-text (alist-get 'test_name captures) t))
-       (cargo-package (compile-plus-rust-ts--package-name))
+       (cargo-package (rude-rust-ts--package-name))
        (command (format "cargo test -p %s -- %s %s"
                         cargo-package
-                        compile-plus-rust-test-binary-args
+                        rude-rust-test-binary-args
                         test-name)))
-    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
+    (if debug (rude-rust-ts--build-dape-config command) command)))
 
-(defun compile-plus-rust-ts--package-name ()
+(defun rude-rust-ts--package-name ()
   "Return cargo package name for current buffer by running `cargo pkgid`.
 Return nil if detection fails or cargo is not available."
   (let* ((default-directory (file-name-directory buffer-file-name))
          (pkgid (string-trim (shell-command-to-string "cargo pkgid"))))
-    (compile-plus-rust-ts--package-name-from-pkgid pkgid)))
+    (rude-rust-ts--package-name-from-pkgid pkgid)))
 
-(defun compile-plus-rust-ts--package-name-from-pkgid (pkgid)
+(defun rude-rust-ts--package-name-from-pkgid (pkgid)
   "Extracts package name from PKGID.
 path+file:///absolute/path/package_name#0.1.0
 path+file:///absolute/path/package_name#custom-package@0.1.0."
@@ -145,7 +145,7 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
            (name (car (last (string-split name "/")))))
       name)))
 
-(defvar compile-plus-rust-ts--doctest-query
+(defvar rude-rust-ts--doctest-query
   (treesit-query-compile
    'rust
    '(((line_comment) :*
@@ -176,22 +176,22 @@ path+file:///absolute/path/package_name#custom-package@0.1.0."
          name: (_) @doc_test_name))
        (mod_item
         name: (_) @doc_test_name)] @end
-      (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
+      (:pred rude-helpers--point-between-nodes-p @start @end)))))
 
 ;;;###autoload
-(defun compile-plus-rust-ts-doctest-at-point (&optional debug)
+(defun rude-rust-ts-doctest-at-point (&optional debug)
   "Find the doctest at point in `rust-ts-mode'.
 If DEBUG is non-nil, then return a `dape' configuration instead."
   (when-let*
-      ((captures (treesit-query-capture 'rust compile-plus-rust-ts--doctest-query))
+      ((captures (treesit-query-capture 'rust rude-rust-ts--doctest-query))
        (test-name (treesit-node-text (alist-get 'doc_test_name captures) t))
        (command (format "cargo test -p %s --doc -- %s %s"
-                        (compile-plus-rust-ts--package-name)
-                        compile-plus-rust-test-binary-args
+                        (rude-rust-ts--package-name)
+                        rude-rust-test-binary-args
                         test-name)))
-    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
+    (if debug (rude-rust-ts--build-dape-config command) command)))
 
-(defvar compile-plus-rust-ts--test-mod-query
+(defvar rude-rust-ts--test-mod-query
   (treesit-query-compile
    'rust
    '(((attribute_item
@@ -206,108 +206,108 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
        name: (_))))))
 
 ;;;###autoload
-(defun compile-plus-rust-ts-test-mod (&optional debug)
+(defun rude-rust-ts-test-mod (&optional debug)
   "Build a command to test the current mod.
 If DEBUG is non-nil, then return a `dape' configuration instead."
-  (when (treesit-query-capture 'rust compile-plus-rust-ts--test-mod-query)
+  (when (treesit-query-capture 'rust rude-rust-ts--test-mod-query)
     (let ((command (format "cargo test -p %s -- %s %s"
-                           (compile-plus-rust-ts--package-name)
-                           compile-plus-rust-test-binary-args
+                           (rude-rust-ts--package-name)
+                           rude-rust-test-binary-args
                            (file-name-base buffer-file-name))))
-      (if debug (compile-plus-rust-ts--build-dape-config command) command))))
+      (if debug (rude-rust-ts--build-dape-config command) command))))
 
-(defvar compile-plus-rust-ts--run-query
+(defvar rude-rust-ts--run-query
   (treesit-query-compile
    'rust
    '(((function_item
        name: (_) @_func_name
        body: _) @start @end
        (:equal "main" @_func_name)
-       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
+       (:pred rude-helpers--point-between-nodes-p @start @end)))))
 
-(defun compile-plus-rust-ts--run-kind ()
+(defun rude-rust-ts--run-kind ()
   "Return bin/example for current cargo package."
-  (car (gethash "kind" (compile-plus-rust-ts--cargo-target))))
+  (car (gethash "kind" (rude-rust-ts--cargo-target))))
 
-(defun compile-plus-rust-ts--run-name ()
+(defun rude-rust-ts--run-name ()
   "Return name for current bin/example of the cargo package."
   (if (string-suffix-p "src/main.rs" buffer-file-name)
-      (compile-plus-rust-ts--package-name)
-    (gethash "name" (compile-plus-rust-ts--cargo-target))))
+      (rude-rust-ts--package-name)
+    (gethash "name" (rude-rust-ts--cargo-target))))
 
-(defun compile-plus-rust-ts--cargo-target ()
+(defun rude-rust-ts--cargo-target ()
   "Return target entry from cargo metadata for current buffer."
   (let (result)
-    (dolist (package (gethash "packages" (compile-plus-rust-ts--cargo-metadata)))
+    (dolist (package (gethash "packages" (rude-rust-ts--cargo-metadata)))
       (dolist (target (gethash "targets" package))
         (when (equal buffer-file-name (expand-file-name (gethash "src_path" target)))
           (setq result target))))
     result))
 
-(defvar-local compile-plus-rust-ts--cargo-metadata nil)
+(defvar-local rude-rust-ts--cargo-metadata nil)
 
-(defun compile-plus-rust-ts--cargo-metadata ()
+(defun rude-rust-ts--cargo-metadata ()
   "Return a hash table with cargo metadata for current buffer."
-  (when (not compile-plus-rust-ts--cargo-metadata)
-    (setq compile-plus-rust-ts--cargo-metadata
+  (when (not rude-rust-ts--cargo-metadata)
+    (setq rude-rust-ts--cargo-metadata
           (json-parse-string
            (let ((default-directory (file-name-directory buffer-file-name)))
              (shell-command-to-string
               "cargo metadata --no-deps --format-version 1"))
            :array-type 'list)))
-  compile-plus-rust-ts--cargo-metadata)
+  rude-rust-ts--cargo-metadata)
 
-(defun compile-plus-rust-ts--run-features-flag ()
+(defun rude-rust-ts--run-features-flag ()
   "Return --features foo,bar needed for current buffer to run, if any."
-  (if-let* ((target (compile-plus-rust-ts--cargo-target))
+  (if-let* ((target (rude-rust-ts--cargo-target))
             (features (gethash "required-features" target)))
       (concat "--features " (string-join features ",") " ")
     ""))
 
-(defun compile-plus-rust-ts--build-dape-config-for-run (command)
+(defun rude-rust-ts--build-dape-config-for-run (command)
   "Build `dape-config' for COMMAND."
   (pcase-let*
       ((debug-adapter
-        (if (equal 'codelldb compile-plus-rust-debug-adapter)
+        (if (equal 'codelldb rude-rust-debug-adapter)
             'codelldb-rust
           'lldb-dap))
        (`(,build-command ,args) (string-split command " -- "))
        (build-command (string-trim (string-replace "cargo run" "cargo build" build-command)))
        (args (if (stringp args) (vector (string-split args)) []))
-       (program (file-name-concat (compile-plus-rust-ts-default-directory)
+       (program (file-name-concat (rude-rust-ts-default-directory)
                                   "target"
                                   "debug"
-                                  (compile-plus-rust-ts--package-name))))
+                                  (rude-rust-ts--package-name))))
     `(,debug-adapter
       compile ,build-command
-      command-cwd compile-plus-rust-ts-default-directory
+      command-cwd rude-rust-ts-default-directory
       :program ,program
       :args ,args)))
 
 ;;;###autoload
-(defun compile-plus-rust-ts-run (&optional debug)
+(defun rude-rust-ts-run (&optional debug)
   "Return command to run main function at point.
 If DEBUG is non-nil, then return a `dape' configuration instead."
-  (when (treesit-query-capture 'rust compile-plus-rust-ts--run-query)
+  (when (treesit-query-capture 'rust rude-rust-ts--run-query)
     (let ((command
            (string-trim (format "cargo run -p %s %s--%s %s"
-                                (compile-plus-rust-ts--package-name)
-                                (compile-plus-rust-ts--run-features-flag)
-                                (compile-plus-rust-ts--run-kind)
-                                (compile-plus-rust-ts--run-name)))))
-      (if debug (compile-plus-rust-ts--build-dape-config-for-run command) command))))
+                                (rude-rust-ts--package-name)
+                                (rude-rust-ts--run-features-flag)
+                                (rude-rust-ts--run-kind)
+                                (rude-rust-ts--run-name)))))
+      (if debug (rude-rust-ts--build-dape-config-for-run command) command))))
 
 ;;;###autoload
-(defun compile-plus-rust-ts-test-all (&optional debug)
+(defun rude-rust-ts-test-all (&optional debug)
   "Build the command to run the whole project.
 If DEBUG is non-nil, then return a `dape' configuration instead."
   (let ((command "cargo test"))
-    (if debug (compile-plus-rust-ts--build-dape-config command) command)))
+    (if debug (rude-rust-ts--build-dape-config command) command)))
 
 ;;;###autoload
-(defun compile-plus-rust-ts-default-directory ()
+(defun rude-rust-ts-default-directory ()
   "Find the project root -- dominating directory with Cargo.toml."
   (locate-dominating-file default-directory "Cargo.toml"))
 
-(provide 'compile-plus-rust-ts)
-;;; compile-plus-rust-ts.el ends here
+(provide 'rude-rust-ts)
+;;; rude-rust-ts.el ends here
