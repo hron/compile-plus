@@ -14,13 +14,21 @@
   (load (expand-file-name "./compile-plus-test-helpers"
                           (file-name-directory load-file-name))))
 
+(ert-deftest rust-ts-augmented-dape-configs ()
+  (dolist (config-key '(compile-plus-rust-codelldb compile-plus-rust-lldb))
+    (let ((config (alist-get config-key dape-configs)))
+      (unless config
+        (error "`dape-configs' doesn't have %S key" config-key))
+      (should (plist-member config :type))
+      (should (not (plist-member config :program))))))
+
 (ert-deftest rust-ts-test-at-point ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode
     (search-forward "fn test_sub_foo")
     (should (equal (compile-plus-rust-ts-test-at-point)
                    "cargo test -p rust-ts -- --no-capture --include-ignored test_sub_foo"))
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-at-point t)))
-      (should (equal debug-adapter 'compile-plus-codelldb-rust))
+      (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
                      "cargo test -p rust-ts --no-run -- --no-capture --include-ignored test_sub_foo")))))
 
@@ -30,7 +38,7 @@
     (should (equal (compile-plus-rust-ts-test-at-point)
                    "cargo test -p multi -- --no-capture --include-ignored test_multi"))
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-at-point t)))
-      (should (equal debug-adapter 'compile-plus-codelldb-rust))
+      (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
                      "cargo test -p multi --no-run -- --no-capture --include-ignored test_multi")))))
 
@@ -40,7 +48,7 @@
     (should (equal (compile-plus-rust-ts-doctest-at-point)
                    "cargo test -p rust-ts --doc -- --no-capture --include-ignored add"))
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-doctest-at-point t)))
-      (should (equal debug-adapter 'compile-plus-codelldb-rust))
+      (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
                      "cargo test -p rust-ts --doc --no-run -- --no-capture --include-ignored add")))))
 
@@ -50,7 +58,7 @@
     (should (equal (compile-plus-rust-ts-test-mod)
                    "cargo test -p rust-ts -- --no-capture --include-ignored sub"))
     (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-mod t)))
-      (should (equal debug-adapter 'compile-plus-codelldb-rust))
+      (should (equal debug-adapter 'compile-plus-rust-codelldb))
       (should (equal (plist-get dape-config 'compile)
                      "cargo test -p rust-ts --no-run -- --no-capture --include-ignored sub")))))
 
@@ -97,7 +105,7 @@
 (ert-deftest rust-ts-test-all ()
   (should (equal (compile-plus-rust-ts-test-all) "cargo test"))
   (pcase-let* ((`(,debug-adapter . ,dape-config) (compile-plus-rust-ts-test-all t)))
-    (should (equal debug-adapter 'compile-plus-codelldb-rust))
+    (should (equal debug-adapter 'compile-plus-rust-codelldb))
     (should (equal (plist-get dape-config 'compile)
                    "cargo test --no-run"))))
 
@@ -116,10 +124,10 @@
     (search-forward "fn test_sub_foo")
     (pcase-let* ((compile-plus-rust-debug-adapter 'codelldb)
                  (`(,debug-adapter) (compile-plus-rust-ts-test-at-point t)))
-      (should (equal 'compile-plus-codelldb-rust debug-adapter)))
-    (pcase-let* ((compile-plus-rust-debug-adapter 'lldb-dap)
+      (should (equal 'compile-plus-rust-codelldb debug-adapter)))
+    (pcase-let* ((compile-plus-rust-debug-adapter 'lldb)
                  (`(,debug-adapter) (compile-plus-rust-ts-test-at-point t)))
-      (should (equal 'compile-plus-lldb-dap-rust debug-adapter)))))
+      (should (equal 'compile-plus-rust-lldb debug-adapter)))))
 
 (ert-deftest rust-ts-dape-config-program ()
   (with-sample-file "rust-ts/src/sub.rs" #'rust-ts-mode

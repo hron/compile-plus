@@ -33,7 +33,7 @@
 (defcustom compile-plus-rust-debug-adapter 'codelldb
   "Debug adapter to use to debug Rust."
   :type 'symbol
-  :options '(codelldb lldb-dap)
+  :options '(codelldb lldb)
   :group 'compile-plus-rust)
 
 (defvar compile-plus-rust-ts--test-query
@@ -54,17 +54,13 @@
         body: _) @end
        (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
-(push
- '(compile-plus-lldb-dap-rust
-   ,@(alist-get 'lldb-dap-rust dape-configs)
-   fn compile-plus-rust-ts-dape-config-program)
- dape-configs)
-
-(push
- '(compile-plus-codelldb-rust
-   ,@(alist-get 'codelldb-rust dape-configs)
-   fn compile-plus-rust-ts-dape-config-program)
- dape-configs)
+(pcase-dolist (`(,key ,dape-key) '((lldb lldb-dap) (codelldb codelldb-rust)))
+  (push
+   (let* ((key (intern (concat "compile-plus-rust-" (symbol-name key))))
+          (base-config (alist-get dape-key dape-configs))
+          (base-config (map-delete base-config :program)))
+     `(,key fn compile-plus-rust-ts-dape-config-program ,@base-config))
+   dape-configs))
 
 (defun compile-plus-rust-ts-dape-config-program (config)
   "Replace :program in CONFIG with the test executable."
@@ -101,14 +97,19 @@
          json-objs
          '())))))
 
+(defun compile-plus-rust-ts--dape-debug-adapter ()
+  "Return a symbol to be used as a key for `dape-configs'."
+  (let* ((debug-adapter (symbol-name compile-plus-rust-debug-adapter))
+         (debug-adapter (concat "compile-plus-rust-" debug-adapter))
+         (debug-adapter (intern debug-adapter)))
+    debug-adapter))
+
 (defun compile-plus-rust-ts--build-dape-config (command)
   "Build `dape-config' for COMMAND."
-  (let* ((debug-adapter (symbol-name compile-plus-rust-debug-adapter))
-         (debug-adapter (concat "compile-plus-" debug-adapter "-rust"))
-         (debug-adapter (intern debug-adapter))
-         (command (if (string-match " -- " command)
-                      (string-replace " -- " (concat " --no-run -- ") command)
-                    (concat command " --no-run"))))
+  (let ((debug-adapter (compile-plus-rust-ts--dape-debug-adapter))
+        (command (if (string-match " -- " command)
+                     (string-replace " -- " (concat " --no-run -- ") command)
+                   (concat command " --no-run"))))
     `(,debug-adapter
       compile ,command
       command-cwd compile-plus-rust-ts-default-directory)))
