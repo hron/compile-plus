@@ -19,7 +19,7 @@
 (defgroup rude-rust nil
   "Rust settings of `rude' package."
   :tag "Rust"
-  :link '(url-link :tag "Website" "https://github.com/hron/rude")
+  :link '(url-link :tag "Website" "https://github.com/hron/rude.el")
   :link '(emacs-library-link :tag "Library Source" "rude-rust-ts.el")
   :group 'rude
   :prefix "rude-rust-")

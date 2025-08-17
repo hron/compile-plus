@@ -19,7 +19,7 @@
 (defgroup rude-python nil
   "Python settings of `rude' package."
   :tag "Python"
-  :link '(url-link :tag "Website" "https://github.com/hron/rude")
+  :link '(url-link :tag "Website" "https://github.com/hron/rude.el")
   :link '(emacs-library-link :tag "Library Source" "rude-python-ts.el")
   :group 'rude
   :prefix "rude-python-")

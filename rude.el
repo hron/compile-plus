@@ -48,7 +48,7 @@
 
 (defgroup rude nil
   "Run \\[compile] based on the buffer content."
-  :link '(url-link :tag "Website" "https://github.com/hron/rude")
+  :link '(url-link :tag "Website" "https://github.com/hron/rude.el")
   :link '(emacs-library-link :tag "Library Source" "rude.el")
   :group 'compilation
   :prefix "rude-")
