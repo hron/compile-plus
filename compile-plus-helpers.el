@@ -40,10 +40,5 @@ NODE BEG END NODE-ONLY GROUPED are passed through."
    queries
    '()))
 
-(defun compile-plus--format-no-prop (&rest format-args)
-  "The same as `format', but without text properties.
-FORMAT-ARGS are passed through."
-  (substring-no-properties (apply #'format format-args)))
-
 (provide 'compile-plus-helpers)
 ;;; compile-plus-helpers.el ends here

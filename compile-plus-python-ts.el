@@ -53,14 +53,20 @@
        (:match "^[\"']__main__[\"']$" @_rhs)) @start @end
       (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
-(defun compile-plus-python-ts-main ()
+(defun compile-plus-python-ts-main (&optional debug)
   "Return command line to run the Python main module.
 This function checks if the current buffer is a Python source file with
 defined __main__ and returns a string with the command line that
-can be used for `compile' to run the file."
-  (when-let* ((captures (treesit-query-capture 'python compile-plus-python-ts--main-query))
-              (relative-buffer-path (file-relative-name buffer-file-name default-directory)))
-    (compile-plus--format-no-prop "%s %s" compile-plus-python-ts-bin relative-buffer-path)))
+can be used for `compile' to run the file.
+
+If DEBUG is t then return `dape' configuration instead."
+  (when-let* ((captures
+               (treesit-query-capture 'python compile-plus-python-ts--main-query))
+              (relative-buffer-path
+               (file-relative-name buffer-file-name default-directory)))
+    (if debug
+        `(debugpy :program ,relative-buffer-path)
+      (format "%s %s" compile-plus-python-ts-bin relative-buffer-path))))
 
 (defvar compile-plus-python-ts--unittest-class-query
   (treesit-query-compile
@@ -82,8 +88,9 @@ can be used for `compile' to run the file."
          (:match "^Test" @class-name)) @start @end
         (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))))
 
-(defun compile-plus-python-ts-test-class ()
-  "Return command line to run a test class."
+(defun compile-plus-python-ts-test-class (&optional debug)
+  "Return command line to run a test class.
+If DEBUG is t then return `dape' configuration instead."
   (when-let* ((test-runner compile-plus-python-ts-test-runner)
               (queries (if (equal "pytest" test-runner)
                            '(compile-plus-python-ts--pytest-class-query
@@ -92,13 +99,19 @@ can be used for `compile' to run the file."
               (captures  (compile-plus-treesit-query-capture
                           'python
                           (seq-map #'symbol-value queries)))
-              (class-name (treesit-node-text (alist-get 'class-name captures)))
-              (test-file (file-relative-name buffer-file-name default-directory)))
-    (compile-plus--format-no-prop "%s -m %s %s -k %s"
-                                  compile-plus-python-ts-bin
-                                  test-runner
-                                  test-file
-                                  class-name)))
+              (class-name (treesit-node-text (alist-get 'class-name captures) t))
+              (test-file (file-relative-name buffer-file-name default-directory))
+              (test-runner-args (format "%s -k %s" test-file class-name)))
+    (cond
+     (debug
+      `(debugpy-module command ,compile-plus-python-ts-bin
+                       :module ,test-runner
+                       :args ,test-runner-args))
+     (t
+      (format "%s -m %s %s"
+              compile-plus-python-ts-bin
+              test-runner
+              test-runner-args)))))
 
 (defvar compile-plus-python-ts--unittest-method-query
   (treesit-query-compile
@@ -137,15 +150,14 @@ If DEBUG is set to t return a `dape' config instead."
               (captures (compile-plus-treesit-query-capture
                          'python
                          (seq-map #'symbol-value queries)))
-              (method-name (treesit-node-text (alist-get 'method-name captures)))
-              (class-name (treesit-node-text (alist-get 'class-name captures)))
+              (method-name (treesit-node-text (alist-get 'method-name captures) t))
+              (class-name (treesit-node-text (alist-get 'class-name captures) t))
               (test-file (file-relative-name buffer-file-name default-directory))
               (delimiter (if (equal "pytest" test-runner) " and " "."))
-              (runner-args (compile-plus--format-no-prop "%s -k '%s%s%s'"
-                                                         test-file
-                                                         class-name
-                                                         delimiter
-                                                         method-name)))
+              (runner-args (format "%s -k '%s%s%s'" test-file
+                                   class-name
+                                   delimiter
+                                   method-name)))
     (if debug
         `(debugpy-module
           command ,compile-plus-python-ts-bin
@@ -160,13 +172,22 @@ If DEBUG is set to t return a `dape' config instead."
       name: (identifier) @method-name
       (:match "^test.*" @method-name )))))
 
-(defun compile-plus-python-ts-test-file ()
-  "Return command line to run the current buffer as a test module."
+(defun compile-plus-python-ts-test-file (&optional debug)
+  "Return command line to run the current buffer as a test module.
+If DEBUG is t then return `dape' configuration instead."
   (when (treesit-query-capture 'python compile-plus-python-ts--test-file-query)
-    (compile-plus--format-no-prop "%s -m %s %s"
-                                  compile-plus-python-ts-bin
-                                  compile-plus-python-ts-test-runner
-                                  (file-relative-name buffer-file-name))))
+    (let ((test-runner compile-plus-python-ts-test-runner)
+          (test-file (file-relative-name buffer-file-name)))
+      (cond
+       (debug
+        `(debugpy-module command ,compile-plus-python-ts-bin
+                         :module ,test-runner
+                         :args ,test-file))
+       (t
+        (format "%s -m %s %s"
+                compile-plus-python-ts-bin
+                test-runner
+                test-file))))))
 
 (defvar compile-plus-python-ts--pytest-function-query
   (treesit-query-compile
@@ -176,15 +197,21 @@ If DEBUG is set to t return a `dape' config instead."
        (:match "^test.*" @method-name)) @start @end
        (:pred compile-plus-helpers--point-between-nodes-p @start @end)))))
 
-(defun compile-plus-python-ts-pytest-function ()
-  "Return command line to run the current function as pytest test."
+(defun compile-plus-python-ts-pytest-function (&optional debug)
+  "Return command line to run the current function as pytest test.
+If DEBUG is t then return `dape' configuration instead."
   (when-let* ((captures (treesit-query-capture
                          'python compile-plus-python-ts--pytest-function-query))
-              (method-name (treesit-node-text (alist-get 'method-name captures)))
-              (test-file (file-relative-name buffer-file-name)))
-    (compile-plus--format-no-prop "%s -m pytest %s -k %s"
-                                  compile-plus-python-ts-bin
-                                  test-file
-                                  method-name)))
+              (method-name (treesit-node-text (alist-get 'method-name captures) t))
+              (test-file (file-relative-name buffer-file-name))
+              (test-runner-args (format "%s -k %s" test-file method-name)))
+    (cond
+     (debug
+      `(debugpy-module command ,compile-plus-python-ts-bin
+                       :module "pytest"
+                       :args ,test-runner-args) )
+     (t
+      (format "%s -m pytest %s" compile-plus-python-ts-bin test-runner-args)))))
+
 (provide 'compile-plus-python-ts)
 ;;; compile-plus-python-ts.el ends here
