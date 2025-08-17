@@ -1,4 +1,4 @@
-;;; compile-plus-tests.el --- compile-plus tests     -*- lexical-binding: t; -*-
+;;; rude-tests.el --- rude tests     -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025  Aleksei Gusev
 
@@ -7,7 +7,7 @@
 
 ;;; Code:
 
-(require 'compile-plus)
+(require 'rude)
 (require 'ert)
 
 (defun sample-provider-1 (&optional debug)
@@ -38,35 +38,35 @@ DEBUG has no meaning."
 
 (ert-deftest compile-command-for-major-mode ()
   (with-temp-buffer
-    (let ((compile-plus-providers-alist
+    (let ((rude-providers-alist
            '((c-mode . (sample-provider-1 sample-provider-2))
              (text-mode . (dont-match-provider)))))
       (c-mode)
-      (should (equal (compile-plus-compile-command) "Sample #1")))))
+      (should (equal (rude-compile-command) "Sample #1")))))
 
 (ert-deftest compile-command-rescue-errors ()
   (with-temp-buffer
     (let ((compile-command nil)
           (debug-on-error nil)
-          (compile-plus-providers-alist
+          (rude-providers-alist
            '((text-mode . (error-provider)))))
       (text-mode)
-      (should (equal (compile-plus-compile-command) '())))))
+      (should (equal (rude-compile-command) '())))))
 
 (ert-deftest dape-command-for-major-mode ()
   (with-temp-buffer
-    (let ((compile-plus-providers-alist
+    (let ((rude-providers-alist
            '((c-mode . (sample-provider-1 sample-provider-2))
              (text-mode . (dont-match-provider)))))
       (c-mode)
-      (should (equal (compile-plus-dape-command)
+      (should (equal (rude-dape-command)
                      '(launch command "sample-command-1"))))))
 
 (ert-deftest dape-command-rescue-errors ()
   (with-temp-buffer
     (let ((compile-command nil)
           (debug-on-error nil)
-          (compile-plus-providers-alist
+          (rude-providers-alist
            '((text-mode . (error-provider)))))
       (text-mode)
-      (should (equal (compile-plus-dape-command) '())))))
+      (should (equal (rude-dape-command) '())))))

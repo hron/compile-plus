@@ -1,4 +1,4 @@
-;;; compile-plus-test-helpers.el --- Test helpers    -*- lexical-binding: t; -*-;;
+;;; rude-test-helpers.el --- Test helpers    -*- lexical-binding: t; -*-;;
 ;;
 ;; Copyright (C) 2025  Aleksei Gusev
 ;;
@@ -16,7 +16,7 @@
 
 (setq ert-batch-backtrace-right-margin 100)
 
-(defconst compile-plus-project-dir
+(defconst rude-project-dir
   (expand-file-name ".." (file-name-directory (or load-file-name default-directory)))
   "Stores project root.")
 
@@ -25,7 +25,7 @@
 Use MODE as major mode."
   (declare (indent 2))
   `(let* ((fixture-relpath (concat "test/fixtures/" ,file-path))
-          (fixture-path (expand-file-name fixture-relpath compile-plus-project-dir))
+          (fixture-path (expand-file-name fixture-relpath rude-project-dir))
           (buffer (find-file-noselect fixture-path)))
      (with-current-buffer buffer
        (unwind-protect
