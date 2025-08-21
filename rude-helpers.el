@@ -26,17 +26,13 @@ the line the following char is a space."
     (and (<= (treesit-node-start beg) p)
          (>= (treesit-node-end end) p))))
 
-(defun rude-treesit-query-capture
+(defun rude-helpers--treesit-query-capture
     (node queries &optional beg end node-only)
   "Run `treesit-query-capture' for each of QUERIES and combine the results.
 NODE BEG END NODE-ONLY GROUPED are passed through."
   (seq-reduce
    (lambda (acc query)
-     (let ((captures (treesit-query-capture node
-                                            query
-                                            beg end
-                                            node-only)))
-       (append acc captures)))
+     (append acc (treesit-query-capture node query beg end node-only)))
    queries
    '()))
 

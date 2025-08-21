@@ -96,7 +96,7 @@ If DEBUG is t then return `dape' configuration instead."
                            '(rude-python-ts--pytest-class-query
                              rude-python-ts--unittest-class-query)
                          '(rude-python-ts--unittest-class-query)))
-              (captures  (rude-treesit-query-capture
+              (captures  (rude-helpers--treesit-query-capture
                           'python
                           (seq-map #'symbol-value queries)))
               (class-name (treesit-node-text (alist-get 'class-name captures) t))
@@ -147,7 +147,7 @@ If DEBUG is set to t return a `dape' config instead."
                            '(rude-python-ts--pytest-method-query
                              rude-python-ts--unittest-method-query)
                          '(rude-python-ts--unittest-method-query)))
-              (captures (rude-treesit-query-capture
+              (captures (rude-helpers--treesit-query-capture
                          'python
                          (seq-map #'symbol-value queries)))
               (method-name (treesit-node-text (alist-get 'method-name captures) t))
