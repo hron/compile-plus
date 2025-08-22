@@ -31,7 +31,10 @@
                      '(debugpy-module
                        command "python3"
                        :module "unittest"
-                       :args "test_unittest.py"))))))
+                       :args "test_unittest.py")))
+      (let ((default-directory (expand-file-name "../../..")))
+        (should (equal (rude-python-ts-test-file)
+                       "python3 -m unittest test/fixtures/python-ts/test_unittest.py"))))))
 
 (ert-deftest python-ts-unittest-class ()
   (let ((rude-python-ts-test-runner "unittest"))
