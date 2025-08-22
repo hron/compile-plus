@@ -79,7 +79,8 @@
 
 (defun rude-rust-ts--dape-test-cmd (command)
   "Find test executable for the given COMMAND which is cargo test ..."
-  (let* ((args (concat command " --message-format=json"))
+  (let* ((args (replace-regexp-in-string "^[[:space:]]*cd .* && " "" command))
+         (args (concat args " --message-format=json"))
          (args (string-remove-prefix "cargo " args))
          (args (string-split args " "))
          (cargo-package (rude-rust-ts--extact-arg-value command "p")))
@@ -116,6 +117,13 @@
       command-cwd rude-rust-ts-default-directory
       :args ,args)))
 
+(defun rude-rust-ts--add-cd-prefix (command)
+  "Add `cd <cargo-root> && ' to COMMAND if needed."
+  (let ((cargo-root (rude-rust-ts-default-directory)))
+    (if (equal default-directory cargo-root)
+        command
+      (format "cd %s && %s" cargo-root command))))
+
 ;;;###autoload
 (defun rude-rust-ts-test-at-point (&optional debug)
   "Build a command line to run the test at point using cargo test.
@@ -127,7 +135,8 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
        (command (format "cargo test -p %s -- %s %s"
                         cargo-package
                         rude-rust-test-binary-args
-                        test-name)))
+                        test-name))
+       (command (rude-rust-ts--add-cd-prefix command)))
     (if debug (rude-rust-ts--build-dape-config command) command)))
 
 (defun rude-rust-ts--package-name ()
@@ -192,7 +201,8 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
        (command (format "cargo test -p %s --doc -- %s %s"
                         (rude-rust-ts--package-name)
                         rude-rust-test-binary-args
-                        test-name)))
+                        test-name))
+       (command (rude-rust-ts--add-cd-prefix command)))
     (if debug (rude-rust-ts--build-dape-config command) command)))
 
 (defvar rude-rust-ts--test-mod-query
@@ -214,10 +224,11 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
   "Build a command to test the current mod.
 If DEBUG is non-nil, then return a `dape' configuration instead."
   (when (treesit-query-capture 'rust rude-rust-ts--test-mod-query)
-    (let ((command (format "cargo test -p %s -- %s %s"
-                           (rude-rust-ts--package-name)
-                           rude-rust-test-binary-args
-                           (file-name-base buffer-file-name))))
+    (let* ((command (format "cargo test -p %s -- %s %s"
+                            (rude-rust-ts--package-name)
+                            rude-rust-test-binary-args
+                            (file-name-base buffer-file-name)))
+           (command (rude-rust-ts--add-cd-prefix command)))
       (if debug (rude-rust-ts--build-dape-config command) command))))
 
 (defvar rude-rust-ts--run-query
@@ -297,25 +308,33 @@ If DEBUG is non-nil, then return a `dape' configuration instead."
   "Return command to run main function at point.
 If DEBUG is non-nil, then return a `dape' configuration instead."
   (when (treesit-query-capture 'rust rude-rust-ts--run-query)
-    (let ((command
-           (string-trim (format "cargo run -p %s %s--%s %s"
-                                (rude-rust-ts--package-name)
-                                (rude-rust-ts--run-features-flag)
-                                (rude-rust-ts--run-kind)
-                                (rude-rust-ts--run-name)))))
+    (let* ((command
+            (string-trim (format "cargo run -p %s %s--%s %s"
+                                 (rude-rust-ts--package-name)
+                                 (rude-rust-ts--run-features-flag)
+                                 (rude-rust-ts--run-kind)
+                                 (rude-rust-ts--run-name))))
+           (command (rude-rust-ts--add-cd-prefix command)))
       (if debug (rude-rust-ts--build-dape-config-for-run command) command))))
 
 ;;;###autoload
 (defun rude-rust-ts-test-all (&optional debug)
   "Build the command to run the whole project.
 If DEBUG is non-nil, then return a `dape' configuration instead."
-  (let ((command "cargo test"))
+  (let* ((command "cargo test")
+         (command (rude-rust-ts--add-cd-prefix command)))
     (if debug (rude-rust-ts--build-dape-config command) command)))
 
 ;;;###autoload
 (defun rude-rust-ts-default-directory ()
   "Find the project root -- dominating directory with Cargo.toml."
-  (locate-dominating-file default-directory "Cargo.toml"))
+  (cond
+   (buffer-file-name
+    (if-let* ((cargo-dir (or (locate-dominating-file buffer-file-name "Cargo.toml")
+                             (locate-dominating-file default-directory "Cargo.toml"))))
+        cargo-dir
+      default-directory))
+   (t default-directory)))
 
 (provide 'rude-rust-ts)
 ;;; rude-rust-ts.el ends here

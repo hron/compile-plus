@@ -41,10 +41,6 @@
                        rude-python-ts-main)))
   "Contains functions to provide candidates per mode.")
 
-(defvar rude-default-directory-alist
-  '((rust-mode . rude-rust-ts-default-directory)
-    (rust-ts-mode . rude-rust-ts-default-directory)
-    (rustic-mode . rude-rust-ts-default-directory)))
 
 (defgroup rude nil
   "Run \\[compile] based on the buffer content."
@@ -73,14 +69,9 @@ if DEBUG is set to t return `dape-command' instead."
 
 (defun rude-default-directory ()
   "Return the directory suitable for rude command."
-  (let ((fn (alist-get major-mode rude-default-directory-alist)))
-    (cond
-     ((fboundp fn)
-      (funcall fn))
-     ((project-current nil)
-      (project-root (project-current nil)))
-     (t
-      default-directory))))
+  (if (project-current nil)
+      (project-root (project-current nil))
+    default-directory))
 
 ;;;###autoload
 (defun rude-compile-thing-at-point ()
